@@ -78,6 +78,23 @@ function init()
 
 function loadScene()
 {
+
+    // Load the room model
+    const gltfRoomLoader = new GLTFLoader();
+    gltfRoomLoader.load('models/room/room.glb', function (gltf) {
+        const room = gltf.scene;
+        room.scale.set(3, 3, 3);
+        room.traverse(function (child) {
+            if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+            }
+        });
+        scene.add(room);
+    }, undefined, function (error) {
+        console.error(error);
+    });
+
     // Materials
     const path ="./images/";
     const cubeTexture = new THREE.TextureLoader().load(path + "wood512.jpg");
