@@ -6,9 +6,22 @@
  * 
  */
 
+// import '../style.css';
+// import * as THREE from 'https://unpkg.com/three@0.149.0/build/three.module.js';
+// // import * as THREE from 'three';
+// import * as dat from 'dat.gui';
+// import gsap from 'gsap';
+// import Stats from 'three/addons/libs/stats.module.js';
+// import { OrbitControls } from 'three/addons/controls/OrbitControls';
+// import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+// import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
+// import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+// import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+// import { Element } from './utils/Element';
+// import { Animation } from './utils/Animation';
+
 import '../style.css';
-import * as THREE from 'https://unpkg.com/three@0.149.0/build/three.module.js';
-// import * as THREE from 'three';
+import * as THREE from 'three';
 import * as dat from 'dat.gui';
 import gsap from 'gsap';
 import Stats from 'three/addons/libs/stats.module.js';
