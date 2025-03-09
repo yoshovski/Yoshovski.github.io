@@ -26,7 +26,8 @@ let titleText = null;
 let subtitleText = null;
 let mixer;
 const mixers = new Map();
-let dragonMixer;
+let hoveredObject = null;
+let roomObject;
 let isMobile = window.matchMedia('(max-width: 992px)').matches;
 let canvas = document.querySelector('.experience-canvas');
 const loaderWrapper = document.getElementById('loader-wrapper');
@@ -39,20 +40,28 @@ let clipNames = [
 ];
 let projects = [
   {
-    image: 'textures/project-spaze.webp',
-    url: 'https://www.spaze.social/',
+    image: 'textures/project-colorpop.jpg',
+    url: 'https://github.com/Copelli-Yoshovski-Associates/ColorPop_AI_Project',
   },
   {
-    image: 'textures/project-myteachers.jpg',
-    url: 'https://myteachers.com.au/',
+    image: 'textures/project-java-app.jpg',
+    url: 'https://github.com/yoshovski/store-management-software-unical',
   },
   {
-    image: 'textures/project-wholesale.jpg',
-    url: 'https://wholesale.com.np/',
+    image: 'textures/project-siliconsquare.jpg',
+    url: 'https://github.com/Silicon-Square/SiliconSquare',
   },
   {
-    image: 'textures/project-pelotero.jpg',
-    url: 'https://www.peloterosenlaweb.com/',
+    image: 'textures/project-sorting.jpg',
+    url: 'https://github.com/Copelli-Yoshovski-Associates/Parallel-Sorting-Algorithms-MPI',
+  },
+  {
+    image: 'textures/project-thesis.jpg',
+    url: 'https://github.com/yoshovski/Thesis-ASP-Based-System-For-Humanitarian-Assistance',
+  },
+  {
+    image: 'textures/project-wordpress-plugin.jpg',
+    url: 'https://github.com/yoshovski/world-domi-map',
   },
 ];
 let aboutCameraPos = {
@@ -131,6 +140,7 @@ gltfLoader.setDRACOLoader(dracoLoader);
 gltfLoader.load(
   'models/room/room.glb',
   function (room) {
+    roomObject = room;
     // hide loader on loade
     loaderWrapper.style.display = 'none';
 
@@ -219,36 +229,8 @@ gltfLoader.load(
         child.receiveShadow = true;
       }
 
-      
-    playAnimation(room, child, 'dragon', 'metarig|idol');
-   // playAnimation(room, child, 'drone', 'exploded_view');
-   playAnimation(room, child, 'BG_flag', 'Object_0');
-
-      // Check for the dragon object and log available animations
-        // if (child.name === 'dragon') {
-        //     console.log("object found: ", child);
-        //     const availableClips = room.animations.map(a => a.name);
-        //     console.log("Available Animations: ", availableClips);
-
-        //   // Set up the animation for the dragon object
-        //   dragonMixer = new THREE.AnimationMixer(child);
-        //     const clip = THREE.AnimationClip.findByName(room.animations, 'metarig|idol'); // Replace 'metarig_idle' with the correct name if different
-        //     if (clip) {
-        //     const action = dragonMixer.clipAction(clip);
-        //     action.play();
-        //     action.setLoop(THREE.LoopRepeat);
-        //     console.log('Animation clip is playing'); 
-        //     clip.tracks.forEach(track => {
-        //         console.log('Track name:', track.name);
-        //         console.log('Track type:', track.ValueTypeName);
-        //     });
-
-        //     child.userData.dragonMixer = dragonMixer;
-
-        //     } else {
-        //     console.error('Animation clip not found');
-        //     }
-        // }
+    playAnimation(room, 'dragon', 'metarig|idol');
+    
     });
 
     scene.add(room.scene);
@@ -294,21 +276,21 @@ roomLight.shadow.camera.far = 2.5;
 roomLight.shadow.bias = -0.002;
 scene.add(roomLight);
 // add light for pc fans
-const fanLight1 = new THREE.PointLight(0xff0000, 30, 0.2);
-const fanLight2 = new THREE.PointLight(0x00ff00, 30, 0.12);
-const fanLight3 = new THREE.PointLight(0x00ff00, 30, 0.2);
-const fanLight4 = new THREE.PointLight(0x00ff00, 30, 0.2);
+// const fanLight1 = new THREE.PointLight(0xff0000, 30, 0.2);
+// const fanLight2 = new THREE.PointLight(0x00ff00, 30, 0.12);
+// const fanLight3 = new THREE.PointLight(0x00ff00, 30, 0.2);
+// const fanLight4 = new THREE.PointLight(0x00ff00, 30, 0.2);
 const fanLight5 = new THREE.PointLight(0x00ff00, 30, 0.05);
-fanLight1.position.set(0, 0.29, -0.29);
-fanLight2.position.set(-0.15, 0.29, -0.29);
-fanLight3.position.set(0.21, 0.29, -0.29);
-fanLight4.position.set(0.21, 0.19, -0.29);
-fanLight5.position.set(0.21, 0.08, -0.29);
-scene.add(fanLight1);
-scene.add(fanLight2);
-scene.add(fanLight3);
-scene.add(fanLight4);
-scene.add(fanLight5);
+// fanLight1.position.set(0, 0.29, -0.29);
+// fanLight2.position.set(-0.15, 0.29, -0.29);
+// fanLight3.position.set(0.21, 0.29, -0.29);
+// fanLight4.position.set(0.21, 0.19, -0.29);
+// fanLight5.position.set(0.21, 0.08, -0.29);
+//scene.add(fanLight1);
+// scene.add(fanLight2);
+// scene.add(fanLight3);
+// scene.add(fanLight4);
+// scene.add(fanLight5);
 // add point light for text on wall
 const pointLight1 = new THREE.PointLight(0xff0000, 0, 1.1);
 const pointLight2 = new THREE.PointLight(0xff0000, 0, 1.1);
@@ -651,7 +633,7 @@ function aboutMenuListener() {
 function projectsMenuListener() {
   // create project planes with textures
   projects.forEach((project, i) => {
-    const colIndex = i % 3 === 0 ? 0 : 1;
+    const colIndex = i % 3; // === 0 ? 0 : 1;
     const rowIndex = Math.floor(i / 3);
     const geometry = new THREE.PlaneGeometry(0.71, 0.4);
     const material = new THREE.MeshBasicMaterial({
@@ -666,7 +648,8 @@ function projectsMenuListener() {
       url: project.url,
     };
     projectPlane.position.set(
-      0.3 + i * 0.8 * colIndex,
+      0.3 + colIndex * 0.8,
+     //0.3 + i * 0.8 * colIndex,
       1 - rowIndex * 0.5,
       -1.15
     );
@@ -832,7 +815,8 @@ window.addEventListener('resize', () => {
 });
 
 
-function playAnimation(room, object, objectName, animationName) {
+function playAnimation(room, objectName, animationName, loop = true) {
+    const object = findObjectByName(room.scene, objectName);
     if (object.name === objectName) {
       console.log("object found: ", object);
       const availableClips = room.animations.map(a => a.name);
@@ -848,17 +832,78 @@ function playAnimation(room, object, objectName, animationName) {
       const clip = THREE.AnimationClip.findByName(room.animations, animationName);
       if (clip) {
         const action = mixer.clipAction(clip);
+        action.reset();
         action.play();
-        action.setLoop(THREE.LoopRepeat);
+        if (loop) {
+            action.setLoop(THREE.LoopRepeat);
+          } else {
+            action.setLoop(THREE.LoopOnce);
+            action.clampWhenFinished = true;
+          }
         console.log('Animation clip is playing');
-        clip.tracks.forEach(track => {
-          console.log('Track name:', track.name);
-          console.log('Track type:', track.ValueTypeName);
-        });
-  
+        // clip.tracks.forEach(track => {
+        //   console.log('Track name:', track.name);
+        //   console.log('Track type:', track.ValueTypeName);
+        // });
         object.userData.mixer = mixer;
       } else {
         console.error('Animation clip not found');
       }
     }
+  }
+
+  function getRootObject(object) {
+    while (object.parent && object.parent.name !== 'room') {
+      object = object.parent;
+    }
+    return object;
+  }
+
+  function onMouseMove(event) {
+    const mousePosition = new THREE.Vector2();
+    const raycaster = new THREE.Raycaster();
+  
+    // Normalize mouse position to range [-1, 1]
+    mousePosition.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mousePosition.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  
+    // Set up the raycaster
+    raycaster.setFromCamera(mousePosition, camera);
+  
+    // Check for intersections
+    const intersects = raycaster.intersectObjects(scene.children, true);
+    if (intersects.length > 0) {
+      const intersectedObject = intersects[0].object;
+      const rootObject = getRootObject(intersectedObject); // Get the root object
+      console.log('Hovered object:', rootObject.name); // Log the name of the intersected object
+
+      if (rootObject.name === 'drone') {
+        if (hoveredObject !== rootObject) {
+          hoveredObject = rootObject;
+          playAnimation(roomObject, 'drone', 'hover');          
+          playAnimation(roomObject, 'BG_flag', 'Object_0');
+          playAnimation(roomObject, 'open_book', 'Animation', false);
+        }
+      } else {
+        hoveredObject = null;
+      }
+    } else {
+      hoveredObject = null;
+    }
+  }
+
+  window.addEventListener('mousemove', onMouseMove);
+
+  function findObjectByName(object, name) {
+    if (object.name === name) {
+      return object;
+    }
+    for (let i = 0; i < object.children.length; i++) {
+      const child = object.children[i];
+      const result = findObjectByName(child, name);
+      if (result) {
+        return result;
+      }
+    }
+    return null;
   }
