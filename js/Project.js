@@ -27,11 +27,12 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.m
 // import gsap from 'gsap';
 import { gsap } from "https://cdn.skypack.dev/gsap";
 // import Stats from 'three/addons/libs/stats.module.js';
-import { OrbitControls } from 'three/addons/controls/OrbitControls';
+// import { OrbitControls } from 'three/addons/controls/OrbitControls';
 // import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 // import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 // import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 // import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/loaders/DRACOLoader.js';
 import { FontLoader } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/loaders/FontLoader.js';
