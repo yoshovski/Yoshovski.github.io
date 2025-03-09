@@ -16,7 +16,8 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
-
+import { Element } from './utils/Element';
+import { Animation } from './utils/Animation';
 
 // VARIABLES
 let theme = 'light';
@@ -24,20 +25,12 @@ let bookCover = null;
 let lightSwitch = null;
 let titleText = null;
 let subtitleText = null;
-let mixer;
 const mixers = new Map();
 let hoveredObject = null;
 let roomObject;
 let isMobile = window.matchMedia('(max-width: 992px)').matches;
 let canvas = document.querySelector('.experience-canvas');
 const loaderWrapper = document.getElementById('loader-wrapper');
-let clipNames = [
-  'fan_rotation',
-  'fan_rotation.001',
-  'fan_rotation.002',
-  'fan_rotation.003',
-  'fan_rotation.004',
-];
 let projects = [
   {
     image: 'textures/project-colorpop.jpg',
@@ -162,7 +155,7 @@ gltfLoader.load(
     room.scene = room.scene.children[0];
     room.scene.children.forEach((child) => {
       // disable shadow by wall
-      if (child.name !== 'Wall') {
+      if (child.name !== Element.WALL) {
         child.castShadow = true;
       }
       child.receiveShadow = true;
@@ -170,42 +163,21 @@ gltfLoader.load(
       if (child.children) {
         child.children.forEach((innerChild) => {
           // disable shadow by book cover & switch btn
-          if (innerChild.name !== 'Book001' && innerChild.name !== 'Switch') {
+          if (innerChild.name !== Element.BOOK1 && innerChild.name !== Element.SWITCH) {
             innerChild.castShadow = true;
           }
           innerChild.receiveShadow = true;
         });
       }
 
-      if (child.name === 'Stand') {
+      if (child.name === Element.STAND) {
         child.children[0].material = new THREE.MeshBasicMaterial({
           map: videoTexture,
         });
         video.play();
       }
 
-
-      // transparent texture for glass
-      if (child.name === 'CPU') {
-        child.children[0].material = new THREE.MeshPhysicalMaterial();
-        child.children[0].material.roughness = 0;
-        child.children[0].material.color.set(0x999999);
-        child.children[0].material.ior = 3;
-        child.children[0].material.transmission = 2;
-        child.children[0].material.opacity = 0.8;
-        child.children[0].material.depthWrite = false;
-        child.children[0].material.depthTest = false;
-        child.children[1].material = new THREE.MeshPhysicalMaterial();
-        child.children[1].material.roughness = 0;
-        child.children[1].material.color.set(0x999999);
-        child.children[1].material.ior = 3;
-        child.children[1].material.transmission = 1;
-        child.children[1].material.opacity = 0.8;
-        child.children[1].material.depthWrite = false;
-        child.children[1].material.depthTest = false;
-      }
-
-      if (child.name === 'Book') {
+      if (child.name === Element.BOOK) {
         bookCover = child.children[0];
 
         // adding texture to book
@@ -219,18 +191,18 @@ gltfLoader.load(
         });
       }
 
-      if (child.name === 'SwitchBoard') {
+      if (child.name === Element.SWITCH_BOARD) {
         lightSwitch = child.children[0];
       }
 
       // Ensure specific objects cast and receive shadows
-      if (child.name === 'dragon' || child.name === 'camera_tripod' || child.name === 'office_chair') {
+      if (child.name === Element.DRAGON || child.name === Element.CAMERA_TRIPOD || child.name === Element.OFFICE_CHAIR) {
         child.castShadow = true;
         child.receiveShadow = true;
       }
 
-    playAnimation(room, 'dragon', 'metarig|idol');
-    
+    playAnimation(room, Element.DRAGON, Animation.DRAGON.IDLE);
+
     });
 
     scene.add(room.scene);
@@ -725,8 +697,8 @@ function init3DWorldClickListeners() {
       }
 
       if (
-        intersect.object.name === 'Book' ||
-        intersect.object.name === 'Book001'
+        intersect.object.name === Element.BOOK_CV ||
+        intersect.object.name === Element.BOOK1
       ) {
         disableOrbitControls();
         cameraToAbout();
@@ -734,8 +706,8 @@ function init3DWorldClickListeners() {
       }
 
       if (
-        intersect.object.name === 'SwitchBoard' ||
-        intersect.object.name === 'Switch'
+        intersect.object.name === Element.SWITCH_BOARD ||
+        intersect.object.name === Element.SWITCH
       ) {
         theme = newTheme;
         switchTheme(theme);
@@ -853,7 +825,7 @@ function playAnimation(room, objectName, animationName, loop = true) {
   }
 
   function getRootObject(object) {
-    while (object.parent && object.parent.name !== 'room') {
+    while (object.parent && object.parent.name !== Element.ROOM) {
       object = object.parent;
     }
     return object;
@@ -877,12 +849,12 @@ function playAnimation(room, objectName, animationName, loop = true) {
       const rootObject = getRootObject(intersectedObject); // Get the root object
       console.log('Hovered object:', rootObject.name); // Log the name of the intersected object
 
-      if (rootObject.name === 'drone') {
+      if (rootObject.name === Element.DRONE) {
         if (hoveredObject !== rootObject) {
           hoveredObject = rootObject;
-          playAnimation(roomObject, 'drone', 'hover');          
-          playAnimation(roomObject, 'BG_flag', 'Object_0');
-          playAnimation(roomObject, 'open_book', 'Animation', false);
+          playAnimation(roomObject, Element.DRONE, Animation.DRONE.HOVER);          
+          playAnimation(roomObject, Element.FLAG, Animation.FLAG.MOVE);
+          playAnimation(roomObject, Element.BOOK, Animation.BOOK.OPEN, false);
         }
       } else {
         hoveredObject = null;

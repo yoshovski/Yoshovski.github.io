@@ -1,0 +1,18 @@
+export const Element = {
+    ROOM: 'room',
+    BOOK_CV: 'Book',
+    BOOK1: 'Book001',
+    BOOK: 'open_book',
+    STAND: 'Stand',
+    SWITCH_BOARD: 'SwitchBoard',
+    SWITCH: 'Switch',
+    DRAGON: 'dragon',
+    CAMERA_TRIPOD: 'camera_tripod',
+    OFFICE_CHAIR: 'office_chair',
+    CPU: 'CPU',
+    WALL: 'Wall',
+    DRONE: 'drone',
+    FLAG: 'BG_flag',
+    APPLE: 'apple',
+    SPEAKER: 'speaker',
+  };
