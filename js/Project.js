@@ -6,39 +6,39 @@
  * 
  */
 
-// import '../style.css';
-// import * as THREE from 'https://unpkg.com/three@0.149.0/build/three.module.js';
-// // import * as THREE from 'three';
-// import * as dat from 'dat.gui';
-// import gsap from 'gsap';
-// import Stats from 'three/addons/libs/stats.module.js';
-// import { OrbitControls } from 'three/addons/controls/OrbitControls';
-// import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-// import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
-// import { FontLoader } from 'three/addons/loaders/FontLoader.js';
-// import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
-// import { Element } from './utils/Element';
-// import { Animation } from './utils/Animation';
-
-// import '../style.css';
+import '../style.css';
+import * as THREE from 'https://unpkg.com/three@0.149.0/build/three.module.js';
 // import * as THREE from 'three';
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.module.js';
-// import * as dat from 'dat.gui';
-// import gsap from 'gsap';
-import { gsap } from "https://cdn.skypack.dev/gsap";
-// import Stats from 'three/addons/libs/stats.module.js';
-// import { OrbitControls } from 'three/addons/controls/OrbitControls';
-// import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-// import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
-// import { FontLoader } from 'three/addons/loaders/FontLoader.js';
-// import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
-import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/controls/OrbitControls.js';
-import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/loaders/DRACOLoader.js';
-import { FontLoader } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/loaders/FontLoader.js';
-import { TextGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/geometries/TextGeometry.js';
-import { Element } from './utils/Element.js';
-import { Animation } from './utils/Animation.js';
+import * as dat from 'dat.gui';
+import gsap from 'gsap';
+import Stats from 'three/addons/libs/stats.module.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
+import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+import { Element } from './utils/Element';
+import { Animation } from './utils/Animation';
+
+// // import '../style.css';
+// // import * as THREE from 'three';
+// import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.module.js';
+// // import * as dat from 'dat.gui';
+// // import gsap from 'gsap';
+// import { gsap } from "https://cdn.skypack.dev/gsap";
+// // import Stats from 'three/addons/libs/stats.module.js';
+// // import { OrbitControls } from 'three/addons/controls/OrbitControls';
+// // import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+// // import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
+// // import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+// // import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+// import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/controls/OrbitControls.js';
+// import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/loaders/GLTFLoader.js';
+// import { DRACOLoader } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/loaders/DRACOLoader.js';
+// import { FontLoader } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/loaders/FontLoader.js';
+// import { TextGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/geometries/TextGeometry.js';
+// import { Element } from './utils/Element.js';
+// import { Animation } from './utils/Animation.js';
 
 // VARIABLES
 let theme = 'light';
