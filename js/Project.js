@@ -37,8 +37,8 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/
 import { DRACOLoader } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/loaders/DRACOLoader.js';
 import { FontLoader } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/geometries/TextGeometry.js';
-import { Element } from './utils/Element';
-import { Animation } from './utils/Animation';
+import { Element } from './utils/Element.js';
+import { Animation } from './utils/Animation.js';
 
 // VARIABLES
 let theme = 'light';
