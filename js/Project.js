@@ -21,7 +21,8 @@
 // import { Animation } from './utils/Animation';
 
 import '../style.css';
-import * as THREE from 'three';
+// import * as THREE from 'three';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.module.js';
 import * as dat from 'dat.gui';
 import gsap from 'gsap';
 import Stats from 'three/addons/libs/stats.module.js';
