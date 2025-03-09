@@ -28,6 +28,10 @@ let subtitleText = null;
 const mixers = new Map();
 let hoveredObject = null;
 let roomObject;
+let video;
+let isAudioOn = false;
+let speakerLight;
+let isProcessingClick = false;
 let isMobile = window.matchMedia('(max-width: 992px)').matches;
 let canvas = document.querySelector('.experience-canvas');
 const loaderWrapper = document.getElementById('loader-wrapper');
@@ -152,7 +156,7 @@ gltfLoader.load(
     loaderWrapper.style.display = 'none';
 
     // load video
-    const video = document.createElement('video');
+    video = document.createElement('video');
     video.src = 'textures/drone.mp4';
     video.muted = true;
     video.playsInline = true;
@@ -168,6 +172,9 @@ gltfLoader.load(
 
     room.scene = room.scene.children[0];
     room.scene.children.forEach((child) => {
+
+        logAllMaterials(child);
+
       // disable shadow by wall
       if (child.name !== Element.WALL) {
         child.castShadow = true;
@@ -692,6 +699,9 @@ function init3DWorldClickListeners() {
   let intersects;
 
   window.addEventListener('click', function (e) {
+    if (isProcessingClick) return; // Prevent multiple toggles within a short period
+    isProcessingClick = true;
+
     // store value set to prevent multi time update in foreach loop
     const newTheme = theme === 'light' ? 'dark' : 'light';
 
@@ -704,6 +714,7 @@ function init3DWorldClickListeners() {
       e.target === projectsBtn ||
       projectsBtn.contains(e.target)
     ) {
+      isProcessingClick = false;
       return false;
     }
 
@@ -711,7 +722,11 @@ function init3DWorldClickListeners() {
     mousePosition.y = -(e.clientY / window.innerHeight) * 2 + 1;
     raycaster.setFromCamera(mousePosition, camera);
     intersects = raycaster.intersectObjects(scene.children);
-    intersects.forEach((intersect) => {
+    if (intersects.length > 0) {
+        const intersect = intersects[0]; // Process only the first intersected object
+        
+      const rootObject = getRootObject(intersect.object);
+
       if (intersect.object.name === 'project') {
         intersect.object.userData.url &&
           window.open(intersect.object.userData.url);
@@ -733,9 +748,26 @@ function init3DWorldClickListeners() {
         theme = newTheme;
         switchTheme(theme);
       }
+
+      if (rootObject.name === Element.SPEAKER) {
+        console.log('Speaker clicked');
+        if (video) {
+          isAudioOn = !isAudioOn;
+          video.muted = !isAudioOn;
+          console.log(`Audio is now ${isAudioOn ? 'on' : 'off'}`);
+        } else {
+          console.error('Video element not found');
+        }
+      }
+    }
+
+    setTimeout(() => {
+        isProcessingClick = false;
+        console.log('Click processing reset.');
+      }, 100);
     });
-  });
-}
+  }
+  
 
 // RESPONSIVE
 function initResponsive(roomScene) {
@@ -905,4 +937,11 @@ function playAnimation(room, objectName, animationName, loop = true) {
     object.castShadow = true;
     object.receiveShadow = true;
     object.children.forEach((child) => setShadowsRecursively(child));
+  }
+
+  function logAllMaterials(object) {
+    if (object.material) {
+      console.log(`Object: ${object.name}, Material:`, object.material);
+    }
+    object.children.forEach(child => logAllMaterials(child));
   }
