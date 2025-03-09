@@ -15,4 +15,6 @@ export const Element = {
     FLAG: 'BG_flag',
     APPLE: 'apple',
     SPEAKER: 'speaker',
+    BALL: 'ball',
+    GIN: 'gin',
   };

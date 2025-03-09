@@ -124,6 +124,20 @@ controls.minPolarAngle = 0.3;
 controls.maxPolarAngle = Math.PI / 2;
 controls.update();
 
+// SHADOWS 
+const shadowCastingObjects = [
+    Element.DRAGON,
+    Element.CAMERA_TRIPOD,
+    Element.OFFICE_CHAIR,
+    Element.APPLE,
+    Element.SPEAKER,
+    Element.BALL,
+    Element.GIN,
+    Element.DRONE,
+    Element.BOOK,
+    Element.FLAG
+  ];
+
 // LOAD MODEL & ASSET
 // const loadingManager = new THREE.LoadingManager();
 const dracoLoader = new DRACOLoader();
@@ -177,7 +191,7 @@ gltfLoader.load(
         video.play();
       }
 
-      if (child.name === Element.BOOK) {
+      if (child.name === Element.BOOK_CV) {
         bookCover = child.children[0];
 
         // adding texture to book
@@ -195,10 +209,17 @@ gltfLoader.load(
         lightSwitch = child.children[0];
       }
 
+      if (child.name === Element.APPLE) {
+        if (child.material instanceof THREE.MeshStandardMaterial) {
+            child.material.emissive = new THREE.Color(0xff0000); // Make the emissive color red
+            child.material.emissiveIntensity = 0.4; // Increase the emissive intensity
+            child.material.needsUpdate = true; // Ensure the material updates
+          }
+    }
+
       // Ensure specific objects cast and receive shadows
-      if (child.name === Element.DRAGON || child.name === Element.CAMERA_TRIPOD || child.name === Element.OFFICE_CHAIR) {
-        child.castShadow = true;
-        child.receiveShadow = true;
+      if (shadowCastingObjects.includes(child.name)) {
+        setShadowsRecursively(child);
       }
 
     playAnimation(room, Element.DRAGON, Animation.DRAGON.IDLE);
@@ -878,4 +899,10 @@ function playAnimation(room, objectName, animationName, loop = true) {
       }
     }
     return null;
+  }
+
+  function setShadowsRecursively(object) {
+    object.castShadow = true;
+    object.receiveShadow = true;
+    object.children.forEach((child) => setShadowsRecursively(child));
   }
