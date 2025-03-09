@@ -7,8 +7,7 @@
  */
 
 import '../style.css';
-import * as THREE from 'https://unpkg.com/three@0.149.0/build/three.module.js';
-// import * as THREE from 'three';
+import * as THREE from 'three';
 import * as dat from 'dat.gui';
 import gsap from 'gsap';
 import Stats from 'three/addons/libs/stats.module.js';

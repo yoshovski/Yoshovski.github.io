@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/assets/fotocamera-75e5e18e.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Hello, I'm Stefan Yoshovski, a software designer and computer science engineer with 
+      a passion for building scalable and efficient software solutions. 
+      My expertise spans backend and frontend development, with a strong focus on Java, 
+      Spring Boot, SQL (Oracle), and Angular. I enjoy working on complex system architectures, 
+      enterprise applications, and integrations that enhance functionality and performance."
+    />
+    <!-- Open Graph Tags -->
+    <meta
+      property="og:title"
+      content="Stefan Yoshovski - Software Developer based in Valencia"
+    />
+    <meta property="og:url" content="https://github.com/yoshovski" />
+    <meta
+      property="og:description"
+      content="Hello, I'm Stefan Yoshovski, a software designer and computer science engineer with 
+      a passion for building scalable and efficient software solutions. 
+      My expertise spans backend and frontend development, with a strong focus on Java, 
+      Spring Boot, SQL (Oracle), and Angular. I enjoy working on complex system architectures, 
+      enterprise applications, and integrations that enhance functionality and performance."
+    />
+    <meta property="og:image" content="/images/preview.jpg" />
+    <meta property="og:image:width" content="400" />
+    <meta property="og:image:height" content="279" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    
+    <title>Stefan Yoshovski - Software Developer based in Valencia</title>
+    <script type="module" crossorigin src="/assets/index-4aedcc6c.js"></script>
+    <link rel="stylesheet" href="/assets/index-34cda43b.css">
+  </head>
+  <body class="light-theme">
+    <div class="experience">
+      <canvas class="experience-canvas"></canvas>
+    </div>
+    <div id="loader-wrapper">
+      <div class="loader"></div>
+    </div>
+    <header>
+      <a href="#" id="logo">
+        <img
+          src="data:image/png;base64,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"
+          width="70"
+          height="70"
+          alt="Creative Works Logo"
+        />
+      </a>
+      <nav class="main-nav">
+        <ul>
+        </ul>
+      </nav>
+      <nav class="side-nav">
+        <ul>
+          <li>
+            <a href="#" id="about-menu">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 96 960 960"
+                height="24"
+                width="24"
+              >
+                <path
+                  d="M222 801q63-44 125-67.5T480 710q71 0 133.5 23.5T739 801q44-54 62.5-109T820 576q0-145-97.5-242.5T480 236q-145 0-242.5 97.5T140 576q0 61 19 116t63 109Zm257.814-195Q422 606 382.5 566.314q-39.5-39.686-39.5-97.5t39.686-97.314q39.686-39.5 97.5-39.5t97.314 39.686q39.5 39.686 39.5 97.5T577.314 566.5q-39.686 39.5-97.5 39.5Zm.654 370Q398 976 325 944.5q-73-31.5-127.5-86t-86-127.266Q80 658.468 80 575.734T111.5 420.5q31.5-72.5 86-127t127.266-86q72.766-31.5 155.5-31.5T635.5 207.5q72.5 31.5 127 86t86 127.032q31.5 72.532 31.5 155T848.5 731q-31.5 73-86 127.5t-127.032 86q-72.532 31.5-155 31.5ZM480 916q55 0 107.5-16T691 844q-51-36-104-55t-107-19q-54 0-107 19t-104 55q51 40 103.5 56T480 916Zm0-370q34 0 55.5-21.5T557 469q0-34-21.5-55.5T480 392q-34 0-55.5 21.5T403 469q0 34 21.5 55.5T480 546Zm0-77Zm0 374Z"
+                />
+              </svg>
+              <span>About Me</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" id="projects-menu">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 96 960 960"
+                height="24"
+                width="24"
+              >
+                <path
+                  d="M480 926 120 646l50-37 310 241 310-241 50 37-360 280Zm0-152L120 494l360-280 360 280-360 280Zm0-301Zm0 225 262-204-262-204-262 204 262 204Z"
+                />
+              </svg>
+              <span>Projects</span>
+            </a>
+          </li>
+          <li class="contact-menu">
+            <a href="#" id="contact-btn">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 96 960 960"
+                height="24"
+                width="24"
+              >
+                <path
+                  d="M475 916q5 0 11.5-2.5T497 907l337-338q13-13 19.5-29.667Q860 522.667 860 506q0-17-6.5-34T834 442L654 262q-13-13-30-19.5t-34-6.5q-16.667 0-33.333 6.5Q540 249 527 262l-18 18 81 82q13 14 23 32.5t10 40.5q0 38-29.5 67T526 531q-25 0-41.5-7.5t-30.185-21.341L381 429 200 610q-5 5-7 10.526-2 5.527-2 11.842 0 12.632 8.5 21.132 8.5 8.5 21.167 8.5 6.333 0 11.833-3t9.5-7l138-138 42 42-137 137q-5 5-7 11t-2 12q0 12 9 21t21 9q6 0 11.5-2.5t9.5-6.5l138-138 42 42-137 137q-4 4-6.5 10.333Q361 794.667 361 801q0 12 9 21t21 9q6 0 11-2t10-7l138-138 42 42-138 138q-5 5-7 11t-2 11q0 14 8 22t22 8Zm.064 60Q442 976 416 951.5t-31-60.619Q351 886 328 863t-28-57q-34-5-56.5-28.5T216 721q-37-5-61-30t-24-60q0-17 6.724-34.049T157 567l224-224 110 110q8 8 17.333 12.5Q517.667 470 527 470q13 0 24.5-11.5t11.5-24.654q0-5.846-3.5-13.346T548 405L405 262q-13-13-30-19.5t-34-6.5q-16.667 0-33.333 6.5Q291 249 278.059 261.857L126 414q-14 14-19.5 29.5t-6.5 35q-1 19.5 7.5 38T128 550l-43 43q-20-22-32.5-53T40 477q0-30 11.5-57.5T84 371l151-151q22-22 49.793-32.5 27.794-10.5 57-10.5Q371 177 398.5 187.5T448 220l18 18 18-18q22-22 49.793-32.5 27.794-10.5 57-10.5Q620 177 647.5 187.5T697 220l179 179q22 22 33 50.033t11 57Q920 535 909 562.5T876 612L539 949q-13 13-29.532 20t-34.404 7ZM377 430Z"
+                />
+              </svg>
+              <span>Get In Touch</span>
+            </a>
+            <div class="contact-menu__dropdown">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 96 960 960"
+                width="40"
+                height="40"
+              >
+                <path
+                  d="m480 136 371 222q17 9 23 24.5t6 30.5v463q0 24-18 42t-42 18H140q-24 0-42-18t-18-42V413q0-15 6.5-30.5T109 358l371-222Zm0 466 336-197-336-202-336 202 336 197Zm0 67L140 469v407h680V469L480 669Zm0 207h340-680 340Z"
+                />
+              </svg>
+              <h4>Send me an Email at</h4>
+              <a href="mailto:info@yoshovski.it" id="contact-email">
+                <span>info@yoshovski.it</span>
+                <!-- <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 384 512"
+                  width="20"
+                  height="20"
+                >
+                  <path
+                    d="M280 64h40c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V128C0 92.7 28.7 64 64 64h40 9.6C121 27.5 153.3 0 192 0s71 27.5 78.4 64H280zM64 112c-8.8 0-16 7.2-16 16V448c0 8.8 7.2 16 16 16H320c8.8 0 16-7.2 16-16V128c0-8.8-7.2-16-16-16H304v24c0 13.3-10.7 24-24 24H192 104c-13.3 0-24-10.7-24-24V112H64zm128-8a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"
+                  />
+                </svg> -->
+              </a>
+              <div class="seperator">
+                <div class="line"></div>
+                <div class="text">or follow on</div>
+                <div class="line"></div>
+              </div>
+              <ul class="social-icons">
+                <li>
+                  <a
+                    href="https://github.com/yoshovski"
+                    target="_blank"
+                  >
+                  <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20" height="20" viewBox="0 0 48 48">
+                    <linearGradient id="rL2wppHyxHVbobwndsT6Ca_AZOZNnY73haj_gr1" x1="4" x2="44" y1="23.508" y2="23.508" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4c4c4c"></stop><stop offset="1" stop-color="#343434"></stop></linearGradient><path fill="url(#rL2wppHyxHVbobwndsT6Ca_AZOZNnY73haj_gr1)" d="M24,4C12.954,4,4,12.954,4,24c0,8.887,5.801,16.411,13.82,19.016h12.36	C38.199,40.411,44,32.887,44,24C44,12.954,35.046,4,24,4z"></path><path d="M30.01,41.996L30,36.198c0-0.939-0.22-1.856-0.642-2.687c5.641-1.133,8.386-4.468,8.386-10.177	c0-2.255-0.665-4.246-1.976-5.92c0.1-0.317,0.174-0.645,0.22-0.981c0.188-1.369-0.023-2.264-0.193-2.984l-0.027-0.116	c-0.186-0.796-0.409-1.364-0.418-1.388l-0.111-0.282l-0.111-0.282l-0.302-0.032l-0.303-0.032c0,0-0.199-0.021-0.501-0.021	c-0.419,0-1.04,0.042-1.627,0.241l-0.196,0.066c-0.74,0.249-1.439,0.485-2.417,1.069c-0.286,0.171-0.599,0.366-0.934,0.584	C27.334,12.881,25.705,12.69,24,12.69c-1.722,0-3.365,0.192-4.889,0.571c-0.339-0.22-0.654-0.417-0.942-0.589	c-0.978-0.584-1.677-0.819-2.417-1.069l-0.196-0.066c-0.585-0.199-1.207-0.241-1.626-0.241c-0.302,0-0.501,0.021-0.501,0.021	l-0.302,0.032l-0.3,0.031l-0.112,0.281l-0.113,0.283c-0.01,0.026-0.233,0.594-0.419,1.391l-0.027,0.115	c-0.17,0.719-0.381,1.615-0.193,2.983c0.048,0.346,0.125,0.685,0.23,1.011c-1.285,1.666-1.936,3.646-1.936,5.89	c0,5.695,2.748,9.028,8.397,10.17c-0.194,0.388-0.345,0.798-0.452,1.224c-0.197,0.067-0.378,0.112-0.538,0.137	c-0.238,0.036-0.487,0.054-0.739,0.054c-0.686,0-1.225-0.134-1.435-0.259c-0.313-0.186-0.872-0.727-1.414-1.518	c-0.463-0.675-1.185-1.558-1.992-1.927c-0.698-0.319-1.437-0.502-2.029-0.502c-0.138,0-0.265,0.01-0.376,0.028	c-0.517,0.082-0.949,0.366-1.184,0.78c-0.203,0.357-0.235,0.773-0.088,1.141c0.219,0.548,0.851,0.985,1.343,1.255	c0.242,0.133,0.765,0.619,1.07,1.109c0.229,0.368,0.335,0.63,0.482,0.992c0.087,0.215,0.183,0.449,0.313,0.732	c0.47,1.022,1.937,1.924,2.103,2.023c0.806,0.483,2.161,0.638,3.157,0.683l0.123,0.003c0,0,0.001,0,0.001,0	c0.24,0,0.57-0.023,1.004-0.071v2.613c0.002,0.529-0.537,0.649-1.25,0.638l0.547,0.184C19.395,43.572,21.645,44,24,44	c2.355,0,4.605-0.428,6.703-1.176l0.703-0.262C30.695,42.538,30.016,42.422,30.01,41.996z" opacity=".05"></path><path d="M30.781,42.797c-0.406,0.047-1.281-0.109-1.281-0.795v-5.804c0-1.094-0.328-2.151-0.936-3.052	c5.915-0.957,8.679-4.093,8.679-9.812c0-2.237-0.686-4.194-2.039-5.822c0.137-0.365,0.233-0.75,0.288-1.147	c0.175-1.276-0.016-2.086-0.184-2.801l-0.027-0.116c-0.178-0.761-0.388-1.297-0.397-1.319l-0.111-0.282l-0.303-0.032	c0,0-0.178-0.019-0.449-0.019c-0.381,0-0.944,0.037-1.466,0.215l-0.196,0.066c-0.714,0.241-1.389,0.468-2.321,1.024	c-0.332,0.198-0.702,0.431-1.101,0.694C27.404,13.394,25.745,13.19,24,13.19c-1.762,0-3.435,0.205-4.979,0.61	c-0.403-0.265-0.775-0.499-1.109-0.699c-0.932-0.556-1.607-0.784-2.321-1.024l-0.196-0.066c-0.521-0.177-1.085-0.215-1.466-0.215	c-0.271,0-0.449,0.019-0.449,0.019l-0.302,0.032l-0.113,0.283c-0.009,0.022-0.219,0.558-0.397,1.319l-0.027,0.116	c-0.169,0.715-0.36,1.524-0.184,2.8c0.056,0.407,0.156,0.801,0.298,1.174c-1.327,1.62-1.999,3.567-1.999,5.795	c0,5.703,2.766,8.838,8.686,9.806c-0.395,0.59-0.671,1.255-0.813,1.964c-0.33,0.13-0.629,0.216-0.891,0.256	c-0.263,0.04-0.537,0.06-0.814,0.06c-0.69,0-1.353-0.129-1.69-0.329c-0.44-0.261-1.057-0.914-1.572-1.665	c-0.35-0.51-1.047-1.417-1.788-1.755c-0.635-0.29-1.298-0.457-1.821-0.457c-0.11,0-0.21,0.008-0.298,0.022	c-0.366,0.058-0.668,0.252-0.828,0.534c-0.128,0.224-0.149,0.483-0.059,0.708c0.179,0.448,0.842,0.85,1.119,1.002	c0.335,0.184,0.919,0.744,1.254,1.284c0.251,0.404,0.37,0.697,0.521,1.067c0.085,0.209,0.178,0.437,0.304,0.712	c0.331,0.719,1.353,1.472,1.905,1.803c0.754,0.452,2.154,0.578,2.922,0.612l0.111,0.002c0.299,0,0.8-0.045,1.495-0.135v3.177	c0,0.779-0.991,0.81-1.234,0.81c-0.031,0,0.503,0.184,0.503,0.184C19.731,43.64,21.822,44,24,44c2.178,0,4.269-0.36,6.231-1.003	C30.231,42.997,30.812,42.793,30.781,42.797z" opacity=".07"></path><path fill="#fff" d="M36.744,23.334c0-2.31-0.782-4.226-2.117-5.728c0.145-0.325,0.296-0.761,0.371-1.309	c0.172-1.25-0.031-2-0.203-2.734s-0.375-1.25-0.375-1.25s-0.922-0.094-1.703,0.172s-1.453,0.469-2.422,1.047	c-0.453,0.27-0.909,0.566-1.27,0.806C27.482,13.91,25.785,13.69,24,13.69c-1.801,0-3.513,0.221-5.067,0.652	c-0.362-0.241-0.821-0.539-1.277-0.811c-0.969-0.578-1.641-0.781-2.422-1.047s-1.703-0.172-1.703-0.172s-0.203,0.516-0.375,1.25	s-0.375,1.484-0.203,2.734c0.077,0.562,0.233,1.006,0.382,1.333c-1.31,1.493-2.078,3.397-2.078,5.704	c0,5.983,3.232,8.714,9.121,9.435c-0.687,0.726-1.148,1.656-1.303,2.691c-0.387,0.17-0.833,0.33-1.262,0.394	c-1.104,0.167-2.271,0-2.833-0.333s-1.229-1.083-1.729-1.813c-0.422-0.616-1.031-1.331-1.583-1.583	c-0.729-0.333-1.438-0.458-1.833-0.396c-0.396,0.063-0.583,0.354-0.5,0.563c0.083,0.208,0.479,0.521,0.896,0.75	c0.417,0.229,1.063,0.854,1.438,1.458c0.418,0.674,0.5,1.063,0.854,1.833c0.249,0.542,1.101,1.219,1.708,1.583	c0.521,0.313,1.562,0.491,2.688,0.542c0.389,0.018,1.308-0.096,2.083-0.206v3.75c0,0.639-0.585,1.125-1.191,1.013	C19.756,43.668,21.833,44,24,44c2.166,0,4.243-0.332,6.19-0.984C29.585,43.127,29,42.641,29,42.002v-5.804	c0-1.329-0.527-2.53-1.373-3.425C33.473,32.071,36.744,29.405,36.744,23.334z M11.239,32.727c-0.154-0.079-0.237-0.225-0.185-0.328	c0.052-0.103,0.22-0.122,0.374-0.043c0.154,0.079,0.237,0.225,0.185,0.328S11.393,32.806,11.239,32.727z M12.451,33.482	c-0.081,0.088-0.255,0.06-0.389-0.062s-0.177-0.293-0.096-0.381c0.081-0.088,0.255-0.06,0.389,0.062S12.532,33.394,12.451,33.482z M13.205,34.732c-0.102,0.072-0.275,0.005-0.386-0.15s-0.118-0.34-0.016-0.412s0.275-0.005,0.386,0.15	C13.299,34.475,13.307,34.66,13.205,34.732z M14.288,35.673c-0.069,0.112-0.265,0.117-0.437,0.012s-0.256-0.281-0.187-0.393	c0.069-0.112,0.265-0.117,0.437-0.012S14.357,35.561,14.288,35.673z M15.312,36.594c-0.213-0.026-0.371-0.159-0.353-0.297	c0.017-0.138,0.204-0.228,0.416-0.202c0.213,0.026,0.371,0.159,0.353,0.297C15.711,36.529,15.525,36.62,15.312,36.594z M16.963,36.833c-0.227-0.013-0.404-0.143-0.395-0.289c0.009-0.146,0.2-0.255,0.427-0.242c0.227,0.013,0.404,0.143,0.395,0.289	C17.381,36.738,17.19,36.846,16.963,36.833z M18.521,36.677c-0.242,0-0.438-0.126-0.438-0.281s0.196-0.281,0.438-0.281	c0.242,0,0.438,0.126,0.438,0.281S18.762,36.677,18.521,36.677z"></path>
+                    </svg>
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://www.instagram.com/stefanyoshovski.ph"
+                    target="_blank"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 448 512"
+                      width="20"
+                      height="20"
+                    >
+                      <path
+                        d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"
+                      />
+                    </svg>
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://www.linkedin.com/in/stefan-yoshovski/?locale=en_US"
+                    target="_blank"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 448 512"
+                      width="20"
+                      height="20"
+                    >
+                      <path
+                        d="M100.28 448H7.4V148.9h92.88zM53.79 108.1C24.09 108.1 0 83.5 0 53.8a53.79 53.79 0 0 1 107.58 0c0 29.7-24.1 54.3-53.79 54.3zM447.9 448h-92.68V302.4c0-34.7-.7-79.2-48.29-79.2-48.29 0-55.69 37.7-55.69 76.7V448h-92.78V148.9h89.08v40.8h1.3c12.4-23.5 42.69-48.3 87.88-48.3 94 0 111.28 61.9 111.28 142.3V448z"
+                      />
+                    </svg>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </li>
+        </ul>
+      </nav>
+      <!-- <a href="#" class="play-game-link">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 96 960 960"
+        >
+          <path
+            d="m383 746 267-170-267-170v340Zm97 230q-82 0-155-31.5t-127.5-86Q143 804 111.5 731T80 576q0-83 31.5-156t86-127Q252 239 325 207.5T480 176q83 0 156 31.5T763 293q54 54 85.5 127T880 576q0 82-31.5 155T763 858.5q-54 54.5-127 86T480 976Zm0-60q142 0 241-99.5T820 576q0-142-99-241t-241-99q-141 0-240.5 99T140 576q0 141 99.5 240.5T480 916Zm0-340Z"
+          />
+        </svg>
+        <span>Play a Game</span>
+      </a> -->
+    </header>
+    <main>
+      <a href="#" id="close-btn" style="display: none">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 96 960 960"
+          width="48"
+          height="48"
+        >
+          <path
+            d="m330 768 150-150 150 150 42-42-150-150 150-150-42-42-150 150-150-150-42 42 150 150-150 150 42 42Zm150 208q-82 0-155-31.5t-127.5-86Q143 804 111.5 731T80 576q0-83 31.5-156t86-127Q252 239 325 207.5T480 176q83 0 156 31.5T763 293q54 54 85.5 127T880 576q0 82-31.5 155T763 858.5q-54 54.5-127 86T480 976Zm0-60q142 0 241-99.5T820 576q0-142-99-241t-241-99q-141 0-240.5 99T140 576q0 141 99.5 240.5T480 916Zm0-340Z"
+          />
+        </svg>
+      </a>
+      <section class="section section--about">
+        <h1>Stefan Yoshovski</h1>
+        <p>  
+        Hello, I'm Stefan Yoshovski, a software designer and computer science engineer with 
+        a passion for building scalable and efficient software solutions. 
+        My expertise spans backend and frontend development, with a strong focus on Java, 
+        Spring Boot, SQL (Oracle), and Angular. I enjoy working on complex system architectures, 
+        enterprise applications, and integrations that enhance functionality and performance.  
+        </p>  
+        <p>  
+        Beyond software development, I have a deep interest in smart home automation, 
+        IoT, and emerging technologies like augmented reality. I work on innovative projects 
+        that bridge technology and usability. Additionally, I'm passionate about photography and drone videography, 
+        always exploring new ways to capture and present the world creatively.  
+        </p>  
+        <p>  
+        I'm always open to discussing technology, research, and creative collaborations. 
+        Feel free to reach out if you have any questions or ideas!  
+        </p>
+      </section>
+    </main>
+    <footer>2025 portfolio - Stefan Yoshovski</footer>
+    
+  </body>
+</html>
