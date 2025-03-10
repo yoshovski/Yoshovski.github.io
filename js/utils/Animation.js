@@ -10,5 +10,9 @@ export const Animation = {
     },
     DRAGON: {
         IDLE: 'metarig|idol',
+        FLAPING: 'metarig|flaping',
+        FLYING: 'metarig|flying',
+        TAKE_OFF: 'metarig|take off',
+        WALK: 'metarig|walk'
     },
   };

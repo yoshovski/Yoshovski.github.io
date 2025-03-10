@@ -18,26 +18,7 @@ import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { Element } from './utils/Element';
 import { Animation } from './utils/Animation';
-
-// // import '../style.css';
-// // import * as THREE from 'three';
-// import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.module.js';
-// // import * as dat from 'dat.gui';
-// // import gsap from 'gsap';
-// import { gsap } from "https://cdn.skypack.dev/gsap";
-// // import Stats from 'three/addons/libs/stats.module.js';
-// // import { OrbitControls } from 'three/addons/controls/OrbitControls';
-// // import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-// // import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
-// // import { FontLoader } from 'three/addons/loaders/FontLoader.js';
-// // import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
-// import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/controls/OrbitControls.js';
-// import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/loaders/GLTFLoader.js';
-// import { DRACOLoader } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/loaders/DRACOLoader.js';
-// import { FontLoader } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/loaders/FontLoader.js';
-// import { TextGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/geometries/TextGeometry.js';
-// import { Element } from './utils/Element.js';
-// import { Animation } from './utils/Animation.js';
+import { Text } from './utils/Text';
 
 // VARIABLES
 let theme = 'light';
@@ -52,6 +33,13 @@ let video;
 let isAudioOn = false;
 let speakerLight;
 let isProcessingClick = false;
+const gui = new dat.GUI();
+const options = {
+  flagMap: 'flag_bg.jpg',
+  audio: isAudioOn,
+  dragonAnimation: Animation.DRAGON.IDLE,
+  hoveredItem: 'None'
+};
 let isMobile = window.matchMedia('(max-width: 992px)').matches;
 let canvas = document.querySelector('.experience-canvas');
 const loaderWrapper = document.getElementById('loader-wrapper');
@@ -195,7 +183,6 @@ gltfLoader.load(
 
         logAllMaterials(child);
 
-      // disable shadow by wall
       if (child.name !== Element.WALL) {
         child.castShadow = true;
       }
@@ -203,7 +190,7 @@ gltfLoader.load(
 
       if (child.children) {
         child.children.forEach((innerChild) => {
-          // disable shadow by book cover & switch btn
+          
           if (innerChild.name !== Element.BOOK1 && innerChild.name !== Element.SWITCH) {
             innerChild.castShadow = true;
           }
@@ -238,9 +225,9 @@ gltfLoader.load(
 
       if (child.name === Element.APPLE) {
         if (child.material instanceof THREE.MeshStandardMaterial) {
-            child.material.emissive = new THREE.Color(0xff0000); // Make the emissive color red
-            child.material.emissiveIntensity = 0.4; // Increase the emissive intensity
-            child.material.needsUpdate = true; // Ensure the material updates
+            child.material.emissive = new THREE.Color(0xff0000);
+            child.material.emissiveIntensity = 0.4;
+            child.material.needsUpdate = true;
           }
     }
 
@@ -255,23 +242,49 @@ gltfLoader.load(
 
     scene.add(room.scene);
 
+    const materialsArray = logAllMaterials(roomObject.scene);
+    console.log('All materials:', materialsArray);
+
+        // GUI setup
+        const flagOptions = {
+          'Bulgaria': 'flag_bg.jpg',
+          'Valencia': 'flag_valencia.jpg',
+          'Spain': 'flag_es.jpg',
+          'Italy': 'flag_it.jpg',
+          'Chess': 'chess.png',
+        };
+    
+        gui.add(options, 'flagMap', Object.keys(flagOptions)).onChange((value) => {
+          const selectedTexture = flagOptions[value];
+          const newTexture = new THREE.TextureLoader().load(`images/${selectedTexture}`);
+          const flagMaterial = materialsArray.find(mat => mat.name === 'M_FLAG');
+          if (flagMaterial) {
+            flagMaterial.material.map = newTexture;
+            flagMaterial.material.needsUpdate = true;
+          } else {
+            console.error('Material M_FLAG not found');
+          }
+        });
+
+        gui.add(options, 'audio').name('Audio On').onChange((value) => {
+          video.muted = !value;
+          console.log(`Audio is now ${value ? 'on' : 'off'}`);
+        });
+
+        gui.add(options, 'dragonAnimation', Object.keys(Animation.DRAGON)).onChange((value) => {
+          const mixer = mixers.get(Element.DRAGON);
+          if (mixer) {
+            mixer.stopAllAction();
+          }
+          playAnimation(roomObject, Element.DRAGON, Animation.DRAGON[value]);
+        });
+
+        gui.add(options, 'hoveredItem').name('Hovered').listen();
+
     animate();
-
-    // add animation
-    // mixer = new THREE.AnimationMixer(room.scene);
-    // const clips = room.animations;
-    // clipNames.forEach((clipName) => {
-    //   const clip = THREE.AnimationClip.findByName(clips, clipName);
-    //   if (clip) {
-    //     const action = mixer.clipAction(clip);
-    //     action.play();
-    //   }
-    // });
-
     loadIntroText();
 
     // add event listeners
-    logoListener();
     aboutMenuListener();
     projectsMenuListener();
     init3DWorldClickListeners();
@@ -295,22 +308,9 @@ roomLight.shadow.camera.far = 2.5;
 // roomLight.shadow.camera.fov = 100;
 roomLight.shadow.bias = -0.002;
 scene.add(roomLight);
-// add light for pc fans
-// const fanLight1 = new THREE.PointLight(0xff0000, 30, 0.2);
-// const fanLight2 = new THREE.PointLight(0x00ff00, 30, 0.12);
-// const fanLight3 = new THREE.PointLight(0x00ff00, 30, 0.2);
-// const fanLight4 = new THREE.PointLight(0x00ff00, 30, 0.2);
+
 const fanLight5 = new THREE.PointLight(0x00ff00, 30, 0.05);
-// fanLight1.position.set(0, 0.29, -0.29);
-// fanLight2.position.set(-0.15, 0.29, -0.29);
-// fanLight3.position.set(0.21, 0.29, -0.29);
-// fanLight4.position.set(0.21, 0.19, -0.29);
-// fanLight5.position.set(0.21, 0.08, -0.29);
-//scene.add(fanLight1);
-// scene.add(fanLight2);
-// scene.add(fanLight3);
-// scene.add(fanLight4);
-// scene.add(fanLight5);
+
 // add point light for text on wall
 const pointLight1 = new THREE.PointLight(0xff0000, 0, 1.1);
 const pointLight2 = new THREE.PointLight(0xff0000, 0, 1.1);
@@ -335,23 +335,6 @@ scene.add(pointLight4);
 // const pointLightHelper = new THREE.PointLightHelper(fanLight3, 0.03);
 // scene.add(pointLightHelper);
 
-// ADD GUI
-// const gui = new dat.GUI();
-// const options = {
-//   lightX: 0,
-//   lightY: 0.08,
-//   lightZ: 0,
-// };
-// gui.add(options, 'lightX').onChange((e) => {
-//   mobileLight.position.setX(e);
-// });
-// gui.add(options, 'lightY').onChange((e) => {
-//   mobileLight.position.setY(e);
-// });
-// gui.add(options, 'lightZ').onChange((e) => {
-//   mobileLight.position.setZ(e);
-// });
-
 const clock = new THREE.Clock();
 function animate() {
     requestAnimationFrame(animate);
@@ -363,12 +346,13 @@ function animate() {
 
 function loadIntroText() {
   const loader = new FontLoader();
-  loader.load('fonts/unione.json', function (font) {
+  // loader.load('fonts/unione.json', function (font) {
+    loader.load('fonts/droid_sans_bold.typeface.json', function (font) {
     const textMaterials = [
       new THREE.MeshPhongMaterial({ color: 0x171f27, flatShading: true }),
       new THREE.MeshPhongMaterial({ color: 0xffffff }),
     ];
-    const titleGeo = new TextGeometry('STEFKO YOSHOVSKI', {
+    const titleGeo = new TextGeometry(Text.TITLE_TEXT, {
       font: font,
       size: 0.08,
       height: 0.01,
@@ -385,7 +369,7 @@ function loadIntroText() {
       new THREE.MeshPhongMaterial({ color: 0xffffff }),
     ];
     const subTitleGeo = new TextGeometry(
-      'Videomaker / Developer / Photographer',
+      Text.SUBTITLE_TEXT,
       {
         font: font,
         size: 0.018,
@@ -607,13 +591,6 @@ function resetCamera() {
   }
 }
 
-function logoListener() {
-  document.getElementById('logo').addEventListener('click', function (e) {
-    e.preventDefault();
-    resetCamera();
-  });
-}
-
 function cameraToAbout() {
   if (!bookCover) return;
 
@@ -774,6 +751,8 @@ function init3DWorldClickListeners() {
         if (video) {
           isAudioOn = !isAudioOn;
           video.muted = !isAudioOn;
+          options.audio = isAudioOn;
+          gui.updateDisplay();
           console.log(`Audio is now ${isAudioOn ? 'on' : 'off'}`);
         } else {
           console.error('Video element not found');
@@ -921,7 +900,7 @@ function playAnimation(room, objectName, animationName, loop = true) {
       const intersectedObject = intersects[0].object;
       const rootObject = getRootObject(intersectedObject); // Get the root object
       console.log('Hovered object:', rootObject.name); // Log the name of the intersected object
-
+      options.hoveredItem = rootObject.name;
       if (rootObject.name === Element.DRONE) {
         if (hoveredObject !== rootObject) {
           hoveredObject = rootObject;
@@ -959,9 +938,10 @@ function playAnimation(room, objectName, animationName, loop = true) {
     object.children.forEach((child) => setShadowsRecursively(child));
   }
 
-  function logAllMaterials(object) {
+  function logAllMaterials(object, materials = []) {
     if (object.material) {
-      console.log(`Object: ${object.name}, Material:`, object.material);
+      materials.push({ name: object.name, material: object.material });
     }
-    object.children.forEach(child => logAllMaterials(child));
+    object.children.forEach(child => logAllMaterials(child, materials));
+    return materials;
   }
