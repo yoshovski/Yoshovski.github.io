@@ -131,10 +131,12 @@ header {
 /* the three frosted-glass control pills (about / projects / contact) */
 .side-nav > ul > li > a {
   display: flex;
-  flex-direction: column;
+  /* row + vertical-rl stacks the icon ABOVE the vertical label, keeping each
+     pill a narrow chip so the icon never spills toward the screen edge */
+  flex-direction: row;
   align-items: center;
-  gap: 6px;
-  padding: 14px 11px;
+  gap: 8px;
+  padding: 14px 10px;
   writing-mode: vertical-rl;
   color: var(--color-text);
   text-decoration: none;

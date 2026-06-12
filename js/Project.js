@@ -156,7 +156,11 @@ gltfLoader.load(
           const coverTexture = new THREE.TextureLoader().load(config.coverImage);
           coverTexture.flipY = false;
           coverTexture.encoding = THREE.sRGBEncoding;
-          bookCover.material = new THREE.MeshStandardMaterial({ color: 0xffffff, map: coverTexture });
+          bookCover.material = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            map: coverTexture,
+            side: THREE.DoubleSide,
+          });
         }
       }
 

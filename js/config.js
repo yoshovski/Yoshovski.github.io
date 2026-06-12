@@ -44,10 +44,10 @@ export const config = {
   // Clicking the monitor/screen opens this link in a new tab.
   youtubeUrl: 'https://www.youtube.com/watch?v=Q-6Z_GBztWg',
 
-  // Photo shown on the book cover. Drop a new image in /images and
-  // point this here — no need to re-export the 3D model.
-  // Set to null to keep whatever cover is baked into room.glb.
-  coverImage: 'images/cover.jpg',
+  // Book cover. Leave null to keep the cover baked into the 3D model
+  // (your CV). To use your own image instead, drop it in /images and set
+  // the path here, e.g. 'images/my-cover.jpg' — no model re-export needed.
+  coverImage: null,
 
   // Onboarding hint shown on load to nudge visitors to enable sound.
   audioHint: 'Click the speaker to hear the room',
