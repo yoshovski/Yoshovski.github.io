@@ -14,8 +14,8 @@ export const config = {
   role: 'Software Developer based in Valencia',
 
   // Big stylised name on the 3D wall + the line under it.
-  wallTitle: 'STEFKO YOSHOVSKI',
-  wallSubtitle: 'Videomaker / Developer / Photographer',
+  wallTitle: 'STEFAN YOSHOVSKI',
+  wallSubtitle: 'Software Engineer / AI Engineer / Videomaker',
 
   // About-me paragraphs (shown when the book is opened).
   about: [

@@ -36,6 +36,13 @@ let monitorScreen = null;
 let monitorOverlayMesh = null;
 let isMonitorHovered = false;
 let isAudioOn = false;
+let speakerObject = null;
+let volumeSphere = null;
+let volumeIcon = null;
+let isSpeakerHovered = false;
+let volumeSphereRadius = 0.03;
+const volumeSphereInPos = new THREE.Vector3();
+const volumeSphereOutPos = new THREE.Vector3();
 let isProcessingClick = false;
 let isMobile = window.matchMedia('(max-width: 992px)').matches;
 const canvas = document.querySelector('.experience-canvas');
@@ -106,7 +113,8 @@ gltfLoader.load(
     roomObject = room;
     loaderWrapper.style.display = 'none';
 
-    // Looping muted video used for the monitor screen texture.
+    // Looping video used for the monitor screen texture. Stays muted (audio
+    // starts off); clicking the volume sphere/speaker unmutes it on a gesture.
     video = document.createElement('video');
     video.src = 'textures/drone.mp4';
     video.muted = true;
@@ -168,6 +176,11 @@ gltfLoader.load(
         lightSwitch = child.children[0];
       }
 
+      // Speaker: remember it so the volume badge can be anchored above it.
+      if (child.name === Element.SPEAKER) {
+        speakerObject = child;
+      }
+
       // Make the apple glow softly.
       if (child.name === Element.APPLE && child.material instanceof THREE.MeshStandardMaterial) {
         child.material.emissive = new THREE.Color(0xff0000);
@@ -199,8 +212,9 @@ gltfLoader.load(
     // The drone takes off on its own a few seconds after load.
     gsap.delayedCall(config.droneAutoFlyDelay, playDroneSequence);
 
-    // Onboarding: nudge the visitor to enable sound.
-    initAudioHint();
+    // Volume control: a 3D sphere that emerges from the speaker, lingers briefly,
+    // then sinks back in — and pops out again whenever the speaker is hovered.
+    buildVolumeSphere();
   },
   undefined,
   function (error) {
@@ -246,6 +260,7 @@ function animate() {
     monitorOverlayMesh.material.opacity =
       0.78 + 0.22 * (0.5 + 0.5 * Math.sin(performance.now() * 0.004));
   }
+  updateVolumeIconFacing();
   renderer.render(scene, camera);
 }
 
@@ -501,11 +516,13 @@ function init3DWorldClickListeners() {
         window.open(config.youtubeUrl, '_blank');
       }
 
-      // Click the speaker -> toggle the room audio.
-      if (rootObject.name === Element.SPEAKER && video) {
-        isAudioOn = !isAudioOn;
-        video.muted = !isAudioOn;
-        if (isAudioOn) hideAudioHint();
+      // Click the speaker or its volume sphere -> toggle the room audio.
+      if (
+        rootObject.name === Element.SPEAKER ||
+        intersect.object === volumeSphere ||
+        intersect.object.parent === volumeSphere
+      ) {
+        toggleAudio();
       }
     }
 
@@ -533,29 +550,149 @@ function initResponsive(roomScene) {
   controls.maxAzimuthAngle = Math.PI * 0.75;
 }
 
-// AUDIO ONBOARDING HINT
-function hideAudioHint() {
-  const hint = document.getElementById('audio-hint');
-  if (hint) hint.classList.remove('audio-hint--visible');
-}
+// VOLUME SPHERE (3D button that rises out of / sinks into the speaker)
+const tmpCamDir = new THREE.Vector3();
 
-function initAudioHint() {
-  const hint = document.getElementById('audio-hint');
-  if (!hint) return;
+// Draw the volume / muted glyph onto a canvas for the sphere's icon sprite.
+function makeVolumeIconTexture(on) {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 9;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
 
-  // Reveal shortly after the room appears.
-  gsap.delayedCall(1, () => hint.classList.add('audio-hint--visible'));
+  // Speaker body.
+  ctx.beginPath();
+  ctx.moveTo(30, 52);
+  ctx.lineTo(50, 52);
+  ctx.lineTo(72, 30);
+  ctx.lineTo(72, 98);
+  ctx.lineTo(50, 76);
+  ctx.lineTo(30, 76);
+  ctx.closePath();
+  ctx.fill();
 
-  const closeBtn = document.getElementById('audio-hint-close');
-  if (closeBtn) {
-    closeBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      hideAudioHint();
-    });
+  if (on) {
+    ctx.beginPath();
+    ctx.arc(78, 64, 14, -Math.PI / 3, Math.PI / 3);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(78, 64, 28, -Math.PI / 3, Math.PI / 3);
+    ctx.stroke();
+  } else {
+    ctx.beginPath();
+    ctx.moveTo(86, 50);
+    ctx.lineTo(112, 76);
+    ctx.moveTo(112, 50);
+    ctx.lineTo(86, 76);
+    ctx.stroke();
   }
 
-  // Auto-dismiss if ignored.
-  gsap.delayedCall(12, hideAudioHint);
+  const tex = new THREE.CanvasTexture(c);
+  tex.minFilter = THREE.LinearFilter;
+  return tex;
+}
+
+function buildVolumeSphere() {
+  if (!speakerObject) return;
+
+  speakerObject.updateWorldMatrix(true, true);
+  const box = new THREE.Box3().setFromObject(speakerObject);
+  const center = box.getCenter(new THREE.Vector3());
+  const size = box.getSize(new THREE.Vector3());
+  volumeSphereRadius = Math.min(size.x, size.z) * 0.42;
+
+  // "Inside" = the speaker's core (occluded by its body); "outside" = floating
+  // just above the speaker's top.
+  volumeSphereInPos.copy(center);
+  volumeSphereOutPos.set(center.x, box.max.y + volumeSphereRadius + 0.015, center.z);
+
+  const geo = new THREE.SphereGeometry(volumeSphereRadius, 32, 32);
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0x0e1116,
+    emissive: new THREE.Color(0xff4d4d),
+    emissiveIntensity: 0.9,
+    metalness: 0.25,
+    roughness: 0.3,
+  });
+  volumeSphere = new THREE.Mesh(geo, mat);
+  volumeSphere.name = 'volumeSphere';
+  volumeSphere.position.copy(volumeSphereInPos);
+  scene.add(volumeSphere);
+
+  // Icon sprite riding on the camera-facing surface of the sphere (depth-tested
+  // so it's hidden along with the sphere when tucked inside the speaker).
+  volumeIcon = new THREE.Sprite(
+    new THREE.SpriteMaterial({ map: makeVolumeIconTexture(isAudioOn), transparent: true })
+  );
+  volumeIcon.scale.setScalar(volumeSphereRadius * 1.5);
+  volumeSphere.add(volumeIcon);
+
+  updateVolumeSphereAppearance();
+
+  // Intro: rise out, hold ~3s, then sink back in (unless the user is hovering).
+  volumeSphereOut(0.7);
+  gsap.delayedCall(3, () => {
+    if (!isSpeakerHovered) volumeSphereIn(0.6);
+  });
+}
+
+// Keep the icon on the hemisphere that faces the camera so it stays readable.
+function updateVolumeIconFacing() {
+  if (!volumeSphere || !volumeIcon) return;
+  tmpCamDir.copy(camera.position).sub(volumeSphere.position).normalize();
+  volumeIcon.position.copy(tmpCamDir).multiplyScalar(volumeSphereRadius * 0.85);
+}
+
+function updateVolumeSphereAppearance() {
+  if (!volumeSphere) return;
+  volumeSphere.material.emissive.set(isAudioOn ? 0x4dff88 : 0xff4d4d);
+  if (volumeIcon) {
+    volumeIcon.material.map = makeVolumeIconTexture(isAudioOn);
+    volumeIcon.material.needsUpdate = true;
+  }
+}
+
+function volumeSphereOut(duration = 0.5) {
+  if (!volumeSphere) return;
+  gsap.killTweensOf(volumeSphere.position);
+  gsap.to(volumeSphere.position, {
+    x: volumeSphereOutPos.x,
+    y: volumeSphereOutPos.y,
+    z: volumeSphereOutPos.z,
+    duration,
+    ease: 'back.out(1.8)',
+  });
+}
+
+function volumeSphereIn(duration = 0.5) {
+  if (!volumeSphere) return;
+  gsap.killTweensOf(volumeSphere.position);
+  gsap.to(volumeSphere.position, {
+    x: volumeSphereInPos.x,
+    y: volumeSphereInPos.y,
+    z: volumeSphereInPos.z,
+    duration,
+    ease: 'power2.in',
+  });
+}
+
+// Hovering the speaker (or the sphere itself) pops the button out; leaving sinks it.
+function setSpeakerHovered(state) {
+  if (state === isSpeakerHovered) return;
+  isSpeakerHovered = state;
+  if (state) volumeSphereOut();
+  else volumeSphereIn();
+}
+
+function toggleAudio() {
+  if (!video) return;
+  isAudioOn = !isAudioOn;
+  video.muted = !isAudioOn;
+  updateVolumeSphereAppearance();
 }
 
 // HELPERS
@@ -608,6 +745,7 @@ function onMouseMove(event) {
   const intersects = raycaster.intersectObjects(scene.children, true);
   let onDrone = false;
   let onMonitor = false;
+  let onSpeaker = false;
   let interactive = false;
 
   if (intersects.length > 0) {
@@ -616,9 +754,13 @@ function onMouseMove(event) {
 
     onDrone = rootObject.name === Element.DRONE;
     onMonitor = rootObject.name === Element.STAND;
+    onSpeaker =
+      rootObject.name === Element.SPEAKER ||
+      object === volumeSphere ||
+      object.parent === volumeSphere;
     interactive =
       onMonitor ||
-      rootObject.name === Element.SPEAKER ||
+      onSpeaker ||
       object.name === 'project' ||
       object.name === Element.BOOK_CV ||
       object.name === Element.BOOK1 ||
@@ -633,6 +775,7 @@ function onMouseMove(event) {
 
   if (!onDrone) hoveredObject = null;
   setMonitorHovered(onMonitor);
+  setSpeakerHovered(onSpeaker);
   if (canvas) canvas.style.cursor = interactive ? 'pointer' : 'default';
 }
 
