@@ -22,6 +22,13 @@
   --color-text-dark: #fff;
   --color-background-dark: #242424;
   --color-background-icon-dark: #454545;
+
+  /* accent + frosted-glass tokens (side controls, hints) */
+  --accent: #f08080;
+  --glass-bg-light: rgba(255, 255, 255, 0.62);
+  --glass-border-light: rgba(20, 20, 20, 0.08);
+  --glass-bg-dark: rgba(36, 36, 36, 0.55);
+  --glass-border-dark: rgba(255, 255, 255, 0.12);
 }
 
 *,
@@ -36,12 +43,16 @@
   --color-text: var(--color-text-light);
   --color-background: var(--color-background-light);
   --color-background-icon: var(--color-background-icon-light);
+  --glass-bg: var(--glass-bg-light);
+  --glass-border: var(--glass-border-light);
 }
 
 .dark-theme {
   --color-text: var(--color-text-dark);
   --color-background: var(--color-background-dark);
   --color-background-icon: var(--color-background-icon-dark);
+  --glass-bg: var(--glass-bg-dark);
+  --glass-border: var(--glass-border-dark);
 }
 
 .experience {
@@ -51,7 +62,7 @@
   z-index: -1;
 }
 
-.experience-canavas {
+.experience-canvas {
   width: 100%;
   height: 100%;
 }
@@ -106,55 +117,55 @@ header {
 .side-nav {
   position: fixed;
   bottom: 40px;
-  right: 30px;
-  writing-mode: vertical-rl;
-  font-size: 14px;
+  right: 28px;
+  font-size: 13px;
   z-index: 2;
 }
 
-.side-nav li a,
-.play-game-link {
-  padding: 10px 8px;
-  color: var(--color-text);
-  display: inline-block;
-  text-decoration: none;
-  background-color: var(--color-background);
-  position: relative;
+.side-nav > ul {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
-.side-nav li > a::after,
-.play-game-link ::after {
-  content: '';
-  position: absolute;
-  top: -3px;
-  left: -3px;
-  width: calc(100% + 6px);
-  height: calc(100% + 6px);
-  border: 1px solid var(--color-background);
-}
-
-.side-nav li a svg {
-  fill: var(--color-text);
-}
-
-.play-game-link {
-  position: fixed;
-  bottom: 50px;
-  left: 30px;
+/* the three frosted-glass control pills (about / projects / contact) */
+.side-nav > ul > li > a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 11px;
   writing-mode: vertical-rl;
-  transform: rotate(180deg);
+  color: var(--color-text);
+  text-decoration: none;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+  transition: transform 0.25s ease, box-shadow 0.25s ease,
+    border-color 0.25s ease, color 0.25s ease;
 }
 
-.play-game-link svg {
-  transform: rotate(90deg);
+.side-nav > ul > li > a svg {
   fill: var(--color-text);
+  transition: fill 0.25s ease;
 }
 
-.side-nav li:hover > a,
-.side-nav li a:focus,
-.play-game-link:hover,
-.play-game-link:focus {
-  opacity: 0.75;
+.side-nav > ul > li > a:hover,
+.side-nav > ul > li > a:focus-visible {
+  transform: translateX(-5px);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 12px 32px rgba(240, 128, 128, 0.3);
+}
+
+.side-nav > ul > li > a:hover svg,
+.side-nav > ul > li > a:focus-visible svg {
+  fill: var(--accent);
 }
 
 .contact-menu {
@@ -267,24 +278,149 @@ footer {
   font-size: 12px;
 }
 
-.cursor {
-  width: 30px;
-  height: 30px;
-  margin-left: -15px;
-  margin-top: -15px;
-  border: 1px solid #fff;
-  border-radius: 50%;
-  z-index: 300;
+/* Onboarding hint — "click the speaker to hear the room" */
+.audio-hint {
+  position: fixed;
+  bottom: 64px;
+  left: 50%;
   display: flex;
-  justify-content: center;
   align-items: center;
+  gap: 10px;
+  padding: 9px 10px 9px 14px;
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.16);
+  transform: translate(-50%, 16px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  z-index: 5;
 }
 
-.cursor-circle {
-  width: 18px;
-  height: 18px;
-  background-color: #000;
+.audio-hint--visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+
+.audio-hint__text {
+  white-space: nowrap;
+}
+
+.audio-hint__icon {
+  display: flex;
+  color: var(--accent);
+  animation: audio-hint-pulse 1.6s ease-in-out infinite;
+}
+
+.audio-hint__icon svg {
+  fill: var(--accent);
+}
+
+.audio-hint__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
   border-radius: 50%;
+  background: var(--color-background-icon);
+  color: var(--color-text);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.audio-hint__close:hover {
+  opacity: 0.7;
+}
+
+/* Monitor hover affordance — glowing edges + YouTube play overlay */
+.monitor-overlay {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5%;
+  border-radius: 6px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+  z-index: 4;
+}
+
+.monitor-overlay--visible {
+  opacity: 1;
+  animation: monitor-glow 1.5s ease-in-out infinite;
+}
+
+.monitor-overlay__play {
+  width: 26%;
+  max-width: 78px;
+  display: flex;
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.55));
+}
+
+.monitor-overlay--visible .monitor-overlay__play {
+  animation: monitor-pop 0.3s ease;
+}
+
+.monitor-overlay__yt {
+  fill: #ff0000;
+}
+
+.monitor-overlay__label {
+  color: #fff;
+  font-size: clamp(10px, 1.3vw, 15px);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+}
+
+@keyframes monitor-glow {
+  0%,
+  100% {
+    box-shadow: inset 0 0 0 2px rgba(255, 0, 0, 0.8),
+      inset 0 0 22px rgba(255, 0, 0, 0.3), 0 0 22px rgba(255, 0, 0, 0.4);
+  }
+  50% {
+    box-shadow: inset 0 0 0 2px rgba(255, 0, 0, 1),
+      inset 0 0 34px rgba(255, 0, 0, 0.5), 0 0 34px rgba(255, 0, 0, 0.7);
+  }
+}
+
+@keyframes monitor-pop {
+  from {
+    transform: scale(0.6);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes audio-hint-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.18);
+    opacity: 0.65;
+  }
 }
 
 @media (max-width: 992px) {
@@ -322,10 +458,6 @@ footer {
     background-color: #f9f9f9;
   }
 } */
-
-.dg.ac {
-  z-index: 100 !important;
-}
 
 /* Loader */
 #loader-wrapper {
