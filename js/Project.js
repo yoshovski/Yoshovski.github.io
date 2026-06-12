@@ -33,6 +33,7 @@ let hoveredObject = null;
 let roomObject;
 let video;
 let monitorScreen = null;
+let monitorOverlayMesh = null;
 let isMonitorHovered = false;
 let isAudioOn = false;
 let isProcessingClick = false;
@@ -180,6 +181,7 @@ gltfLoader.load(
     scene.add(room.scene);
     animate();
     captureHomeView();
+    buildMonitorOverlay();
 
     loadIntroText();
 
@@ -236,7 +238,10 @@ function animate() {
   requestAnimationFrame(animate);
   const delta = clock.getDelta();
   mixers.forEach((mixer) => mixer.update(delta));
-  if (isMonitorHovered) updateMonitorOverlay();
+  if (monitorOverlayMesh && monitorOverlayMesh.visible) {
+    monitorOverlayMesh.material.opacity =
+      0.78 + 0.22 * (0.5 + 0.5 * Math.sin(performance.now() * 0.004));
+  }
   renderer.render(scene, camera);
 }
 
@@ -632,8 +637,9 @@ function setMonitorHovered(state) {
   if (state === isMonitorHovered) return;
   isMonitorHovered = state;
 
-  const overlay = document.getElementById('monitor-overlay');
-  if (overlay) overlay.classList.toggle('monitor-overlay--visible', state);
+  // The overlay is a real 3D plane on the screen, so anything in front of the
+  // monitor (e.g. the chair) occludes it correctly via the depth buffer.
+  if (monitorOverlayMesh) monitorOverlayMesh.visible = state;
 
   // Brighten the screen a touch on hover.
   if (monitorScreen && monitorScreen.material.color) {
@@ -641,38 +647,147 @@ function setMonitorHovered(state) {
   }
 }
 
-const _overlayBox = new THREE.Box3();
-const _overlayPoint = new THREE.Vector3();
-function updateMonitorOverlay() {
-  const overlay = document.getElementById('monitor-overlay');
-  if (!overlay || !monitorScreen) return;
+// The four world-space corners of the screen quad (constant — monitor is static).
+let monitorCornersWorld = null;
 
-  _overlayBox.setFromObject(monitorScreen);
-  const { min, max } = _overlayBox;
-  const corners = [
-    [min.x, min.y, min.z], [min.x, min.y, max.z],
-    [min.x, max.y, min.z], [min.x, max.y, max.z],
-    [max.x, min.y, min.z], [max.x, min.y, max.z],
-    [max.x, max.y, min.z], [max.x, max.y, max.z],
-  ];
+function computeMonitorCorners() {
+  const geo = monitorScreen.geometry;
+  if (!geo.boundingBox) geo.computeBoundingBox();
+  const bb = geo.boundingBox;
+  const size = new THREE.Vector3();
+  bb.getSize(size);
 
-  const w = window.innerWidth;
-  const h = window.innerHeight;
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  for (const c of corners) {
-    _overlayPoint.set(c[0], c[1], c[2]).project(camera);
-    const sx = (_overlayPoint.x * 0.5 + 0.5) * w;
-    const sy = (-_overlayPoint.y * 0.5 + 0.5) * h;
-    minX = Math.min(minX, sx);
-    maxX = Math.max(maxX, sx);
-    minY = Math.min(minY, sy);
-    maxY = Math.max(maxY, sy);
+  // The thinnest local axis is the screen normal; the other two span the screen.
+  const dims = [['x', size.x], ['y', size.y], ['z', size.z]].sort((a, b) => a[1] - b[1]);
+  const depth = dims[0][0];
+  const vert = dims[1][0]; // height
+  const horiz = dims[2][0]; // width
+  const mid = (bb.min[depth] + bb.max[depth]) / 2;
+
+  const make = (top, left) => {
+    const p = new THREE.Vector3();
+    p[depth] = mid;
+    p[vert] = top ? bb.max[vert] : bb.min[vert];
+    p[horiz] = left ? bb.min[horiz] : bb.max[horiz];
+    return p;
+  };
+  const cTL = make(true, true);
+  const cTR = make(true, false);
+  const cBL = make(false, true);
+  const cBR = make(false, false);
+
+  monitorScreen.updateWorldMatrix(true, false);
+  [cTL, cTR, cBL, cBR].forEach((c) => c.applyMatrix4(monitorScreen.matrixWorld));
+
+  monitorCornersWorld = [cTL, cTR, cBL, cBR];
+}
+
+// Build the YouTube overlay as a plane pinned onto the screen, in 3D — so the
+// depth buffer occludes it when something (the chair) is in front. Runs once.
+function buildMonitorOverlay() {
+  if (!monitorScreen) return;
+  computeMonitorCorners();
+  const pts = monitorCornersWorld;
+
+  const center = new THREE.Vector3();
+  pts.forEach((p) => center.add(p));
+  center.multiplyScalar(0.25);
+
+  // Derive an orthonormal screen basis from the corners.
+  const byHeight = [...pts].sort((a, b) => b.y - a.y);
+  const avgTop = byHeight[0].clone().add(byHeight[1]).multiplyScalar(0.5);
+  const avgBottom = byHeight[2].clone().add(byHeight[3]).multiplyScalar(0.5);
+
+  const up = avgTop.clone().sub(avgBottom).normalize();
+  const right = byHeight[0].clone().sub(byHeight[1]).normalize();
+  const normal = new THREE.Vector3().crossVectors(right, up).normalize();
+  // Make the textured face point toward the room (where the camera lives).
+  if (normal.dot(camera.position.clone().sub(center)) < 0) {
+    right.negate();
+    normal.crossVectors(right, up).normalize();
   }
+  up.crossVectors(normal, right).normalize();
 
-  overlay.style.left = `${minX}px`;
-  overlay.style.top = `${minY}px`;
-  overlay.style.width = `${maxX - minX}px`;
-  overlay.style.height = `${maxY - minY}px`;
+  const width = byHeight[0].distanceTo(byHeight[1]);
+  const height = avgTop.distanceTo(avgBottom);
+
+  const texture = makeMonitorOverlayTexture(width / Math.max(height, 1e-6));
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    transparent: true,
+    depthWrite: false,
+  });
+  monitorOverlayMesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height), material);
+  monitorOverlayMesh.raycast = () => {}; // never block hover/click on the screen itself
+  monitorOverlayMesh.renderOrder = 2;
+  monitorOverlayMesh.quaternion.setFromRotationMatrix(
+    new THREE.Matrix4().makeBasis(right, up, normal)
+  );
+  monitorOverlayMesh.position.copy(center).addScaledVector(normal, 0.004);
+  monitorOverlayMesh.visible = false;
+  scene.add(monitorOverlayMesh);
+}
+
+// Draw the glowing frame + YouTube play button + label onto a canvas texture.
+function makeMonitorOverlayTexture(aspect) {
+  const W = 1024;
+  const H = Math.round(W / Math.max(aspect, 0.1));
+  const cnv = document.createElement('canvas');
+  cnv.width = W;
+  cnv.height = H;
+  const ctx = cnv.getContext('2d');
+
+  // Glowing red frame.
+  const pad = W * 0.02;
+  ctx.strokeStyle = '#ff2a2a';
+  ctx.lineWidth = Math.max(4, W * 0.009);
+  ctx.shadowColor = 'rgba(255, 0, 0, 0.9)';
+  ctx.shadowBlur = W * 0.04;
+  roundRectPath(ctx, pad, pad, W - 2 * pad, H - 2 * pad, W * 0.02);
+  ctx.stroke();
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // YouTube play button.
+  const bw = W * 0.2;
+  const bh = bw * 0.7;
+  const bx = (W - bw) / 2;
+  const by = H * 0.32;
+  ctx.fillStyle = '#ff0000';
+  roundRectPath(ctx, bx, by, bw, bh, bh * 0.28);
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  const cx = bx + bw / 2;
+  const cy = by + bh / 2;
+  ctx.beginPath();
+  ctx.moveTo(cx - bw * 0.1, cy - bh * 0.22);
+  ctx.lineTo(cx + bw * 0.16, cy);
+  ctx.lineTo(cx - bw * 0.1, cy + bh * 0.22);
+  ctx.closePath();
+  ctx.fill();
+
+  // Label.
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `600 ${Math.round(H * 0.1)}px Poppins, Arial, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+  ctx.shadowBlur = W * 0.012;
+  ctx.fillText('Watch on YouTube', W / 2, by + bh + H * 0.16);
+
+  const texture = new THREE.CanvasTexture(cnv);
+  texture.encoding = THREE.sRGBEncoding;
+  return texture;
+}
+
+function roundRectPath(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
 }
 
 function findObjectByName(object, name) {
