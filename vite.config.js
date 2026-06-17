@@ -1,7 +1,9 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: '/Yoshovski.github.io/',
+  // This is a user/org Pages repo (yoshovski.github.io) served at the domain
+  // root, so assets must be referenced from '/', not a project sub-path.
+  base: '/',
   build: {
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
