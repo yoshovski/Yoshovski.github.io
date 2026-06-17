@@ -45,6 +45,64 @@
     <div id="loader-wrapper">
       <div class="loader"></div>
     </div>
+
+    <!-- Floating label that names the object under the cursor (toggled in settings). -->
+    <div id="object-label" class="object-label" aria-hidden="true"></div>
+
+    <!-- Pagination chips for the projects wall (shown only when it overflows). -->
+    <div id="project-pager" class="project-pager" aria-label="Project pages"></div>
+
+    <!-- Settings: a gear button that opens a frosted-glass control panel. -->
+    <div id="settings" class="settings">
+      <button
+        id="settings-toggle"
+        class="settings__toggle"
+        type="button"
+        aria-label="Settings"
+        aria-expanded="false"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 96 960 960" width="24" height="24">
+          <path d="m370 936-16-128q-13-5-24.5-12T307 779l-119 50L78 638l103-78q-1-7-1-13.5v-27q0-6.5 1-13.5L78 428l110-191 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 16l119-50 110 191-103 78q1 7 1 13.5v27q0 6.5-2 13.5l103 78-110 191-118-50q-11 8-23 15t-24 12l-16 128H370Zm112-260q42 0 71-29t29-71q0-42-29-71t-71-29q-42 0-71 29t-29 71q0 42 29 71t71 29Zm0-60q-17 0-28.5-11.5T442 576q0-17 11.5-28.5T482 536q17 0 28.5 11.5T522 576q0 17-11.5 28.5T482 616Zm-2-40Zm-40 320h79l14-106q31-8 57.5-23.5T639 729l99 41 39-68-86-65q5-14 7-29.5t2-31.5q0-16-2-31.5t-7-29.5l86-65-39-68-99 42q-22-23-48.5-38.5T533 258l-13-106h-79l-14 106q-31 8-57.5 23.5T322 319l-99-41-39 68 86 65q-5 14-7 29.5t-2 31.5q0 16 2 31.5t7 29.5l-86 65 39 68 99-42q22 23 48.5 38.5T427 790l13 106Z"/>
+        </svg>
+      </button>
+
+      <div id="settings-panel" class="settings__panel" role="dialog" aria-label="Settings" hidden>
+        <h3 class="settings__title">Settings</h3>
+
+        <div class="settings__row">
+          <span class="settings__label">Music</span>
+          <button id="set-music" class="switch" type="button" role="switch" aria-checked="false">
+            <span class="switch__dot"></span>
+          </button>
+        </div>
+
+        <div class="settings__group">
+          <span class="settings__label">Flag</span>
+          <div id="set-flag" class="flag-picker">
+            <button class="flag-swatch is-active" type="button" data-flag="flag_bg.jpg" title="Bulgaria">
+              <span class="flag-swatch__img flag--bg"></span>
+              <span>Bulgaria</span>
+            </button>
+            <button class="flag-swatch" type="button" data-flag="flag_valencia.jpg" title="Valencia">
+              <span class="flag-swatch__img flag--va"></span>
+              <span>Valencia</span>
+            </button>
+            <button class="flag-swatch" type="button" data-flag="flag_it.jpg" title="Italy">
+              <span class="flag-swatch__img flag--it"></span>
+              <span>Italy</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="settings__row">
+          <span class="settings__label">Object names</span>
+          <button id="set-names" class="switch" type="button" role="switch" aria-checked="false">
+            <span class="switch__dot"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <header>
       <a href="#" id="logo">
         <img

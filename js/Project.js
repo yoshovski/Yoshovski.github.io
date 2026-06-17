@@ -43,6 +43,16 @@ let isSpeakerHovered = false;
 let volumeSphereRadius = 0.03;
 const volumeSphereInPos = new THREE.Vector3();
 const volumeSphereOutPos = new THREE.Vector3();
+let flagMaterial = null;
+let showObjectNames = false;
+let switchBoardObject = null;
+let lightBulb = null;
+let lightBulbIcon = null;
+let lightBulbGlow = null;
+let isSwitchHovered = false;
+let lightBulbRadius = 0.02;
+const lightBulbInPos = new THREE.Vector3();
+const lightBulbOutPos = new THREE.Vector3();
 let isProcessingClick = false;
 let isMobile = window.matchMedia('(max-width: 992px)').matches;
 const canvas = document.querySelector('.experience-canvas');
@@ -50,6 +60,10 @@ const loaderWrapper = document.getElementById('loader-wrapper');
 
 // Project tiles come from config (clone so we can attach mesh/y without mutating config).
 const projects = config.projects.map((project) => ({ ...project }));
+const projectsPerPage = config.projectsPerPage || 6;
+const projectPageCount = Math.max(1, Math.ceil(projects.length / projectsPerPage));
+let currentProjectPage = 0;
+let hoveredProjectIndex = null;
 
 let aboutCameraPos = { x: 0.12, y: 0.2, z: 0.55 };
 let aboutCameraRot = { x: -1.54, y: 0.13, z: 1.41 };
@@ -152,13 +166,16 @@ gltfLoader.load(
         video.play();
       }
 
-      // Book: inner pages + (optionally) a config-driven cover photo.
+      // Book: inner pages (CV, rendered from SVG) + config-driven cover photo.
       if (child.name === Element.BOOK_CV) {
         bookCover = child.children[0];
 
-        const bookTexture = new THREE.TextureLoader().load('textures/book-inner.jpg');
-        bookTexture.flipY = false;
-        child.material = new THREE.MeshStandardMaterial({ color: 0xffffff, map: bookTexture });
+        const bookMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
+        child.material = bookMaterial;
+        loadSvgTexture('textures/cv.svg', 595, 842, (texture) => {
+          bookMaterial.map = texture;
+          bookMaterial.needsUpdate = true;
+        });
 
         if (config.coverImage && bookCover) {
           const coverTexture = new THREE.TextureLoader().load(config.coverImage);
@@ -174,6 +191,7 @@ gltfLoader.load(
 
       if (child.name === Element.SWITCH_BOARD) {
         lightSwitch = child.children[0];
+        switchBoardObject = child;
       }
 
       // Speaker: remember it so the volume badge can be anchored above it.
@@ -195,6 +213,9 @@ gltfLoader.load(
 
     playAnimation(room, Element.DRAGON, Animation.DRAGON.IDLE);
 
+    // The flag's material, so the settings panel can swap its texture.
+    flagMaterial = findMaterialByName(room.scene, 'M_FLAG');
+
     scene.add(room.scene);
     animate();
     captureHomeView();
@@ -215,6 +236,13 @@ gltfLoader.load(
     // Volume control: a 3D sphere that emerges from the speaker, lingers briefly,
     // then sinks back in — and pops out again whenever the speaker is hovered.
     buildVolumeSphere();
+
+    // Light control: a glowing bulb that emerges from the wall switch the same
+    // way, lit when the room light is on and dark when off.
+    buildLightBulb();
+
+    // Settings gear: music, flag selector, object-name labels.
+    initSettingsPanel();
   },
   undefined,
   function (error) {
@@ -260,7 +288,6 @@ function animate() {
     monitorOverlayMesh.material.opacity =
       0.78 + 0.22 * (0.5 + 0.5 * Math.sin(performance.now() * 0.004));
   }
-  updateVolumeIconFacing();
   renderer.render(scene, camera);
 }
 
@@ -374,9 +401,14 @@ function resetBookCover() {
 
 function resetProjects() {
   if (projects.length === 0) return;
+  setHoveredProject(null);
+  const pager = document.getElementById('project-pager');
+  if (pager) pager.classList.remove('project-pager--visible');
+
   projects.forEach((project) => {
     if (!project.mesh) return;
-    gsap.to(project.mesh.material, { opacity: 0, duration: 1 });
+    project.fadeMaterials.forEach((m) => gsap.to(m, { opacity: 0, duration: 1 }));
+    gsap.to(project.overlayMat, { opacity: 0, duration: 0.5 });
     gsap.to(project.mesh.position, { y: project.y, duration: 1 });
     gsap.to(project.mesh.scale, { x: 0, y: 0, z: 0, duration: 0, delay: 1 });
   });
@@ -426,27 +458,24 @@ function aboutMenuListener() {
   });
 }
 
+const PROJECT_W = 0.71;
+const PROJECT_H = 0.4;
+const PROJECT_MAT = 0.022; // white mat border
+const PROJECT_FRAME = 0.028; // outer frame border
+
+// Outer frame size + a gap so the framed photos don't touch on the wall.
+const PROJECT_GAP = 0.09;
+const PROJECT_FRAME_W = PROJECT_W + 2 * (PROJECT_MAT + PROJECT_FRAME);
+const PROJECT_FRAME_H = PROJECT_H + 2 * (PROJECT_MAT + PROJECT_FRAME);
+const PROJECT_COL_SPACING = PROJECT_FRAME_W + PROJECT_GAP;
+const PROJECT_ROW_SPACING = PROJECT_FRAME_H + PROJECT_GAP;
+const PROJECT_X_BASE = 1.1 - PROJECT_COL_SPACING; // keep the 3-col grid centred at x≈1.1
+const PROJECT_Y_TOP = 1;
+
 function projectsMenuListener() {
-  // Build the project planes in a 3-per-row grid.
-  projects.forEach((project, i) => {
-    const colIndex = i % 3;
-    const rowIndex = Math.floor(i / 3);
-    const geometry = new THREE.PlaneGeometry(0.71, 0.4);
-    const material = new THREE.MeshBasicMaterial({
-      color: 0xffffff,
-      map: new THREE.TextureLoader().load(project.image),
-      transparent: true,
-      opacity: 0.0,
-    });
-    const projectPlane = new THREE.Mesh(geometry, material);
-    projectPlane.name = 'project';
-    projectPlane.userData = { url: project.url };
-    projectPlane.position.set(0.3 + colIndex * 0.8, 1 - rowIndex * 0.5, -1.15);
-    projectPlane.scale.set(0, 0, 0);
-    project.mesh = projectPlane;
-    project.y = 1 - rowIndex * 0.5;
-    scene.add(projectPlane);
-  });
+  // Build a framed photo per project, laid out 3-per-row within each page.
+  projects.forEach((project, i) => buildProjectFrame(project, i));
+  buildProjectPager();
 
   document.getElementById('projects-menu').addEventListener('click', function (e) {
     e.preventDefault();
@@ -456,12 +485,267 @@ function projectsMenuListener() {
     gsap.to(camera.rotation, { ...projectsCameraRot, duration: 1.5 });
     gsap.delayedCall(1.5, enableCloseBtn);
 
-    projects.forEach((project, i) => {
-      project.mesh.scale.set(1, 1, 1);
-      gsap.to(project.mesh.material, { opacity: 1, duration: 1.5, delay: 1.5 + i * 0.1 });
-      gsap.to(project.mesh.position, { y: project.y + 0.05, duration: 1, delay: 1.5 + i * 0.1 });
-    });
+    const pager = document.getElementById('project-pager');
+    if (pager) pager.classList.toggle('project-pager--visible', projectPageCount > 1);
+
+    showProjectsPage(currentProjectPage, 1.5);
   });
+}
+
+// One framed photo: dark frame + white mat + photo + (hidden) description overlay.
+function buildProjectFrame(project, i) {
+  const within = i % projectsPerPage;
+  const colIndex = within % 3;
+  const rowIndex = Math.floor(within / 3);
+
+  const x = PROJECT_X_BASE + colIndex * PROJECT_COL_SPACING;
+  const y = PROJECT_Y_TOP - rowIndex * PROJECT_ROW_SPACING;
+
+  const group = new THREE.Group();
+  group.position.set(x, y, -1.15);
+  group.scale.set(0, 0, 0);
+
+  const matW = PROJECT_W + 2 * PROJECT_MAT;
+  const matH = PROJECT_H + 2 * PROJECT_MAT;
+  const frameW = matW + 2 * PROJECT_FRAME;
+  const frameH = matH + 2 * PROJECT_FRAME;
+
+  const frameMat = new THREE.MeshBasicMaterial({ color: 0x20242e, transparent: true, opacity: 0 });
+  const frame = new THREE.Mesh(new THREE.PlaneGeometry(frameW, frameH), frameMat);
+  frame.position.z = -0.006;
+  group.add(frame);
+
+  const matMatl = new THREE.MeshBasicMaterial({ color: 0xf4f1ea, transparent: true, opacity: 0 });
+  const mat = new THREE.Mesh(new THREE.PlaneGeometry(matW, matH), matMatl);
+  mat.position.z = -0.003;
+  group.add(mat);
+
+  const imgMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 });
+  const imgMesh = new THREE.Mesh(new THREE.PlaneGeometry(PROJECT_W, PROJECT_H), imgMat);
+  imgMesh.name = 'project';
+  imgMesh.userData = { url: project.url, index: i };
+  group.add(imgMesh);
+
+  const overlayMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
+  const overlay = new THREE.Mesh(new THREE.PlaneGeometry(PROJECT_W, PROJECT_H), overlayMat);
+  overlay.position.z = 0.001;
+  overlay.renderOrder = 1;
+  overlay.raycast = () => {}; // never intercept the pointer
+  group.add(overlay);
+
+  loadProjectTextures(project, imgMat, overlayMat);
+
+  project.mesh = group;
+  project.imgMat = imgMat;
+  project.overlayMat = overlayMat;
+  project.fadeMaterials = [frameMat, matMatl, imgMat];
+  project.y = y;
+  scene.add(group);
+}
+
+// Load the photo, then build a sharp + a blurred-and-dimmed texture, plus the
+// description overlay texture shown on hover.
+function loadProjectTextures(project, imgMat, overlayMat) {
+  const img = new Image();
+  img.onload = () => {
+    const w = img.naturalWidth;
+    const h = img.naturalHeight;
+
+    const sharpCanvas = document.createElement('canvas');
+    sharpCanvas.width = w;
+    sharpCanvas.height = h;
+    sharpCanvas.getContext('2d').drawImage(img, 0, 0);
+    project.sharpTex = new THREE.CanvasTexture(sharpCanvas);
+    project.sharpTex.encoding = THREE.sRGBEncoding;
+
+    const blurCanvas = document.createElement('canvas');
+    blurCanvas.width = w;
+    blurCanvas.height = h;
+    const bx = blurCanvas.getContext('2d');
+    bx.filter = `blur(${Math.round(w * 0.012)}px)`;
+    bx.drawImage(img, 0, 0);
+    bx.filter = 'none';
+    bx.fillStyle = 'rgba(10, 12, 18, 0.4)';
+    bx.fillRect(0, 0, w, h);
+    project.blurTex = new THREE.CanvasTexture(blurCanvas);
+    project.blurTex.encoding = THREE.sRGBEncoding;
+
+    imgMat.map = project.sharpTex;
+    imgMat.needsUpdate = true;
+
+    overlayMat.map = makeProjectDescriptionTexture(project, w, h);
+    overlayMat.needsUpdate = true;
+  };
+  img.src = project.image;
+}
+
+// Render the project's title + wrapped description onto a transparent texture.
+function makeProjectDescriptionTexture(project, w, h) {
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+
+  const pad = w * 0.08;
+  ctx.textBaseline = 'top';
+  ctx.fillStyle = '#ffffff';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
+  ctx.shadowBlur = w * 0.02;
+
+  const title = project.title || '';
+  const desc = project.description || '';
+  let y = h * 0.3;
+
+  ctx.font = `700 ${Math.round(h * 0.13)}px Poppins, Arial, sans-serif`;
+  y = wrapCanvasText(ctx, title, pad, y, w - pad * 2, h * 0.15);
+
+  y += h * 0.04;
+  ctx.font = `500 ${Math.round(h * 0.082)}px Poppins, Arial, sans-serif`;
+  wrapCanvasText(ctx, desc, pad, y, w - pad * 2, h * 0.11);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.encoding = THREE.sRGBEncoding;
+  return tex;
+}
+
+function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
+  const words = text.split(' ');
+  let line = '';
+  for (let n = 0; n < words.length; n++) {
+    const test = line ? `${line} ${words[n]}` : words[n];
+    if (ctx.measureText(test).width > maxWidth && line) {
+      ctx.fillText(line, x, y);
+      line = words[n];
+      y += lineHeight;
+    } else {
+      line = test;
+    }
+  }
+  if (line) {
+    ctx.fillText(line, x, y);
+    y += lineHeight;
+  }
+  return y;
+}
+
+// Reveal a page of framed projects; hide all the others.
+function showProjectsPage(page, baseDelay = 0) {
+  currentProjectPage = page;
+  setHoveredProject(null);
+
+  let revealIndex = 0;
+  projects.forEach((project, i) => {
+    if (!project.mesh) return;
+    const onPage = Math.floor(i / projectsPerPage) === page;
+
+    gsap.killTweensOf(project.mesh.position);
+    project.fadeMaterials.forEach((m) => gsap.killTweensOf(m));
+
+    if (onPage) {
+      const delay = baseDelay + revealIndex * 0.08;
+      revealIndex++;
+      project.mesh.scale.set(1, 1, 1);
+      project.fadeMaterials.forEach((m) => gsap.to(m, { opacity: 1, duration: 1.2, delay }));
+      gsap.to(project.mesh.position, { y: project.y + 0.05, duration: 1, delay });
+    } else {
+      project.fadeMaterials.forEach((m) => gsap.to(m, { opacity: 0, duration: 0.3 }));
+      gsap.to(project.overlayMat, { opacity: 0, duration: 0.3 });
+      gsap.delayedCall(0.3, () => project.mesh.scale.set(0, 0, 0));
+    }
+  });
+
+  updateProjectPagerActive();
+}
+
+// Blur the hovered project's photo and fade in its description; revert the rest.
+function setHoveredProject(index) {
+  if (index === hoveredProjectIndex) return;
+
+  if (hoveredProjectIndex != null) {
+    const prev = projects[hoveredProjectIndex];
+    if (prev && prev.sharpTex) {
+      prev.imgMat.map = prev.sharpTex;
+      prev.imgMat.needsUpdate = true;
+    }
+    if (prev) gsap.to(prev.overlayMat, { opacity: 0, duration: 0.25 });
+  }
+
+  hoveredProjectIndex = index;
+
+  if (index != null) {
+    const next = projects[index];
+    if (next && next.blurTex) {
+      next.imgMat.map = next.blurTex;
+      next.imgMat.needsUpdate = true;
+    }
+    if (next) gsap.to(next.overlayMat, { opacity: 1, duration: 0.25 });
+  }
+}
+
+// Labelled pager (‹ More projects 1 2 ›), shown only when there's >1 page.
+function buildProjectPager() {
+  const pager = document.getElementById('project-pager');
+  if (!pager) return;
+  pager.innerHTML = '';
+  if (projectPageCount <= 1) return;
+
+  const label = document.createElement('span');
+  label.className = 'project-pager__label';
+  label.textContent = 'More projects';
+  pager.appendChild(label);
+
+  const prev = document.createElement('button');
+  prev.type = 'button';
+  prev.className = 'project-pager__nav project-pager__nav--prev';
+  prev.setAttribute('aria-label', 'Previous projects');
+  prev.innerHTML = '&#8249;';
+  prev.addEventListener('click', (e) => {
+    e.stopPropagation();
+    goToProjectPage(currentProjectPage - 1);
+  });
+  pager.appendChild(prev);
+
+  for (let p = 0; p < projectPageCount; p++) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'project-pager__btn';
+    btn.textContent = String(p + 1);
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      goToProjectPage(p);
+    });
+    pager.appendChild(btn);
+  }
+
+  const next = document.createElement('button');
+  next.type = 'button';
+  next.className = 'project-pager__nav project-pager__nav--next';
+  next.setAttribute('aria-label', 'Next projects');
+  next.innerHTML = '&#8250;';
+  next.addEventListener('click', (e) => {
+    e.stopPropagation();
+    goToProjectPage(currentProjectPage + 1);
+  });
+  pager.appendChild(next);
+
+  updateProjectPagerActive();
+}
+
+function goToProjectPage(page) {
+  const clamped = Math.max(0, Math.min(projectPageCount - 1, page));
+  if (clamped !== currentProjectPage) showProjectsPage(clamped);
+}
+
+function updateProjectPagerActive() {
+  const pager = document.getElementById('project-pager');
+  if (!pager) return;
+  pager.querySelectorAll('.project-pager__btn').forEach((btn, i) => {
+    btn.classList.toggle('is-active', i === currentProjectPage);
+  });
+  const prev = pager.querySelector('.project-pager__nav--prev');
+  const next = pager.querySelector('.project-pager__nav--next');
+  if (prev) prev.disabled = currentProjectPage === 0;
+  if (next) next.disabled = currentProjectPage === projectPageCount - 1;
 }
 
 function init3DWorldClickListeners() {
@@ -477,11 +761,15 @@ function init3DWorldClickListeners() {
     // Ignore clicks that land on the close / projects buttons (they sit over the book on mobile).
     const closeBtn = document.getElementById('close-btn');
     const projectsBtn = document.getElementById('projects-menu');
+    const settings = document.getElementById('settings');
+    const pager = document.getElementById('project-pager');
     if (
       e.target === closeBtn ||
       closeBtn.contains(e.target) ||
       e.target === projectsBtn ||
-      projectsBtn.contains(e.target)
+      projectsBtn.contains(e.target) ||
+      (settings && settings.contains(e.target)) ||
+      (pager && pager.contains(e.target))
     ) {
       isProcessingClick = false;
       return false;
@@ -506,9 +794,16 @@ function init3DWorldClickListeners() {
         gsap.delayedCall(1.5, enableCloseBtn);
       }
 
-      if (intersect.object.name === Element.SWITCH_BOARD || intersect.object.name === Element.SWITCH) {
+      // Click the switch or its light bulb -> toggle the room light/theme.
+      if (
+        intersect.object.name === Element.SWITCH_BOARD ||
+        intersect.object.name === Element.SWITCH ||
+        intersect.object === lightBulb ||
+        intersect.object.parent === lightBulb
+      ) {
         theme = newTheme;
         switchTheme(theme);
+        updateLightBulbAppearance();
       }
 
       // Click the monitor screen -> open the YouTube video.
@@ -550,10 +845,11 @@ function initResponsive(roomScene) {
   controls.maxAzimuthAngle = Math.PI * 0.75;
 }
 
-// VOLUME SPHERE (3D button that rises out of / sinks into the speaker)
-const tmpCamDir = new THREE.Vector3();
+// VOLUME SPHERE (glassy 3D button that rises out of / shrinks into the speaker)
+const VOLUME_ACCENT = 0xb18cff; // light violet, matching the speaker's glow
 
-// Draw the volume / muted glyph onto a canvas for the sphere's icon sprite.
+// Draw the volume / muted glyph onto a canvas (white with a soft shadow so it
+// stays legible over the glass against any background).
 function makeVolumeIconTexture(on) {
   const c = document.createElement('canvas');
   c.width = c.height = 128;
@@ -563,6 +859,8 @@ function makeVolumeIconTexture(on) {
   ctx.lineWidth = 9;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
+  ctx.shadowBlur = 7;
 
   // Speaker body.
   ctx.beginPath();
@@ -605,79 +903,82 @@ function buildVolumeSphere() {
   const size = box.getSize(new THREE.Vector3());
   volumeSphereRadius = Math.min(size.x, size.z) * 0.42;
 
-  // "Inside" = the speaker's core (occluded by its body); "outside" = floating
-  // just above the speaker's top.
-  volumeSphereInPos.copy(center);
-  volumeSphereOutPos.set(center.x, box.max.y + volumeSphereRadius + 0.015, center.z);
+  // "Out" floats just above the speaker's top; "in" tucks just under the top rim
+  // (the sphere also shrinks to a point there, so it never pokes past the sides).
+  volumeSphereOutPos.set(center.x, box.max.y + volumeSphereRadius + 0.012, center.z);
+  volumeSphereInPos.set(center.x, box.max.y - volumeSphereRadius * 0.3, center.z);
 
-  const geo = new THREE.SphereGeometry(volumeSphereRadius, 32, 32);
-  const mat = new THREE.MeshStandardMaterial({
-    color: 0x0e1116,
-    emissive: new THREE.Color(0xff4d4d),
-    emissiveIntensity: 0.9,
-    metalness: 0.25,
-    roughness: 0.3,
+  const geo = new THREE.SphereGeometry(volumeSphereRadius, 48, 48);
+  const mat = new THREE.MeshPhysicalMaterial({
+    color: 0xece1ff,
+    metalness: 0,
+    roughness: 0.06,
+    transmission: 1,
+    thickness: volumeSphereRadius * 2,
+    ior: 1.35,
+    clearcoat: 1,
+    clearcoatRoughness: 0.04,
+    attenuationColor: new THREE.Color(VOLUME_ACCENT),
+    attenuationDistance: volumeSphereRadius * 6,
+    emissive: new THREE.Color(VOLUME_ACCENT),
+    emissiveIntensity: 0.06,
+    transparent: true,
   });
   volumeSphere = new THREE.Mesh(geo, mat);
   volumeSphere.name = 'volumeSphere';
   volumeSphere.position.copy(volumeSphereInPos);
+  volumeSphere.scale.setScalar(0.001); // starts as a hidden point inside the speaker
+  volumeSphere.renderOrder = 2;
   scene.add(volumeSphere);
 
-  // Icon sprite riding on the camera-facing surface of the sphere (depth-tested
-  // so it's hidden along with the sphere when tucked inside the speaker).
+  // Camera-facing icon, drawn on top of the glass (depthTest off — it shrinks
+  // to nothing with the sphere, so it's never visible while tucked inside).
   volumeIcon = new THREE.Sprite(
-    new THREE.SpriteMaterial({ map: makeVolumeIconTexture(isAudioOn), transparent: true })
+    new THREE.SpriteMaterial({
+      map: makeVolumeIconTexture(isAudioOn),
+      transparent: true,
+      depthTest: false,
+    })
   );
-  volumeIcon.scale.setScalar(volumeSphereRadius * 1.5);
+  volumeIcon.scale.setScalar(volumeSphereRadius * 1.25);
+  volumeIcon.renderOrder = 3;
   volumeSphere.add(volumeIcon);
 
   updateVolumeSphereAppearance();
 
-  // Intro: rise out, hold ~3s, then sink back in (unless the user is hovering).
-  volumeSphereOut(0.7);
+  // Intro: rise out and grow, hold ~3s, then shrink back in (unless hovered).
+  volumeSphereOut(0.8);
   gsap.delayedCall(3, () => {
     if (!isSpeakerHovered) volumeSphereIn(0.6);
   });
 }
 
-// Keep the icon on the hemisphere that faces the camera so it stays readable.
-function updateVolumeIconFacing() {
-  if (!volumeSphere || !volumeIcon) return;
-  tmpCamDir.copy(camera.position).sub(volumeSphere.position).normalize();
-  volumeIcon.position.copy(tmpCamDir).multiplyScalar(volumeSphereRadius * 0.85);
-}
-
 function updateVolumeSphereAppearance() {
   if (!volumeSphere) return;
-  volumeSphere.material.emissive.set(isAudioOn ? 0x4dff88 : 0xff4d4d);
+  // Soft inner glow when playing, faint glass tint when muted.
+  volumeSphere.material.emissiveIntensity = isAudioOn ? 0.34 : 0.12;
   if (volumeIcon) {
     volumeIcon.material.map = makeVolumeIconTexture(isAudioOn);
     volumeIcon.material.needsUpdate = true;
   }
 }
 
+// Tween a floating button's position and scale together (out = grow into place,
+// in = shrink to a point so it tucks into its host object without poking through).
+function animateFloatingButton(mesh, targetPos, targetScale, duration, ease) {
+  if (!mesh) return;
+  gsap.killTweensOf(mesh.position);
+  gsap.killTweensOf(mesh.scale);
+  gsap.to(mesh.position, { x: targetPos.x, y: targetPos.y, z: targetPos.z, duration, ease });
+  gsap.to(mesh.scale, { x: targetScale, y: targetScale, z: targetScale, duration, ease });
+}
+
 function volumeSphereOut(duration = 0.5) {
-  if (!volumeSphere) return;
-  gsap.killTweensOf(volumeSphere.position);
-  gsap.to(volumeSphere.position, {
-    x: volumeSphereOutPos.x,
-    y: volumeSphereOutPos.y,
-    z: volumeSphereOutPos.z,
-    duration,
-    ease: 'back.out(1.8)',
-  });
+  animateFloatingButton(volumeSphere, volumeSphereOutPos, 1, duration, 'back.out(1.6)');
 }
 
 function volumeSphereIn(duration = 0.5) {
-  if (!volumeSphere) return;
-  gsap.killTweensOf(volumeSphere.position);
-  gsap.to(volumeSphere.position, {
-    x: volumeSphereInPos.x,
-    y: volumeSphereInPos.y,
-    z: volumeSphereInPos.z,
-    duration,
-    ease: 'power2.in',
-  });
+  animateFloatingButton(volumeSphere, volumeSphereInPos, 0.001, duration, 'power2.in');
 }
 
 // Hovering the speaker (or the sphere itself) pops the button out; leaving sinks it.
@@ -688,14 +989,291 @@ function setSpeakerHovered(state) {
   else volumeSphereIn();
 }
 
-function toggleAudio() {
+function setAudio(on) {
   if (!video) return;
-  isAudioOn = !isAudioOn;
-  video.muted = !isAudioOn;
+  isAudioOn = on;
+  video.muted = !on;
   updateVolumeSphereAppearance();
+  syncSettingsUI();
+}
+
+function toggleAudio() {
+  setAudio(!isAudioOn);
+}
+
+// SETTINGS PANEL (gear menu: music, flag, object names)
+function findMaterialByName(root, name) {
+  let found = null;
+  root.traverse((o) => {
+    const mats = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
+    for (const m of mats) if (m && m.name === name) found = m;
+  });
+  return found;
+}
+
+function setFlag(file) {
+  if (!flagMaterial) return;
+  const texture = new THREE.TextureLoader().load(`images/${file}`);
+  texture.flipY = false;
+  texture.encoding = THREE.sRGBEncoding;
+  flagMaterial.map = texture;
+  flagMaterial.needsUpdate = true;
+}
+
+// Keep the panel controls in sync with the underlying state.
+function syncSettingsUI() {
+  const music = document.getElementById('set-music');
+  if (music) music.setAttribute('aria-checked', String(isAudioOn));
+}
+
+function initSettingsPanel() {
+  const toggle = document.getElementById('settings-toggle');
+  const panel = document.getElementById('settings-panel');
+  if (!toggle || !panel) return;
+
+  const openPanel = (open) => {
+    panel.hidden = !open;
+    toggle.setAttribute('aria-expanded', String(open));
+  };
+
+  toggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openPanel(panel.hidden);
+  });
+
+  // Close when clicking outside the settings area.
+  document.addEventListener('click', (e) => {
+    if (!panel.hidden && !document.getElementById('settings').contains(e.target)) {
+      openPanel(false);
+    }
+  });
+
+  // Music toggle.
+  const music = document.getElementById('set-music');
+  if (music) {
+    music.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setAudio(!isAudioOn);
+    });
+  }
+
+  // Flag picker.
+  const flagPicker = document.getElementById('set-flag');
+  if (flagPicker) {
+    flagPicker.querySelectorAll('.flag-swatch').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setFlag(btn.dataset.flag);
+        flagPicker
+          .querySelectorAll('.flag-swatch')
+          .forEach((b) => b.classList.toggle('is-active', b === btn));
+      });
+    });
+  }
+
+  // Object-name labels toggle.
+  const names = document.getElementById('set-names');
+  if (names) {
+    names.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showObjectNames = !showObjectNames;
+      names.setAttribute('aria-checked', String(showObjectNames));
+      if (!showObjectNames) {
+        const label = document.getElementById('object-label');
+        if (label) label.classList.remove('object-label--visible');
+      }
+    });
+  }
+
+  syncSettingsUI();
+}
+
+// Show the hovered object's name next to the cursor (when enabled in settings).
+function updateObjectLabel(event, object, rootObject) {
+  const label = document.getElementById('object-label');
+  if (!label) return;
+  if (!showObjectNames || !object) {
+    label.classList.remove('object-label--visible');
+    return;
+  }
+  const name = object.name || (rootObject && rootObject.name) || 'Object';
+  label.textContent = name;
+  label.style.left = `${event.clientX}px`;
+  label.style.top = `${event.clientY}px`;
+  label.classList.add('object-label--visible');
+}
+
+// LIGHT BULB (glassy 3D button that lights up / dims with the room light)
+const BULB_WARM = 0xffd27a;
+
+// Draw a light-bulb glyph: filled glass + filament when on, outline when off.
+function makeBulbIconTexture(on) {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const ctx = c.getContext('2d');
+  ctx.strokeStyle = '#ffffff';
+  ctx.fillStyle = '#ffffff';
+  ctx.lineWidth = 8;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
+  ctx.shadowBlur = 7;
+
+  // Bulb glass (circle) sitting on a small base.
+  ctx.beginPath();
+  ctx.arc(64, 54, 26, 0, Math.PI * 2);
+  if (on) ctx.fill();
+  else ctx.stroke();
+
+  // Screw base.
+  ctx.beginPath();
+  ctx.moveTo(50, 84);
+  ctx.lineTo(78, 84);
+  ctx.moveTo(53, 94);
+  ctx.lineTo(75, 94);
+  ctx.moveTo(57, 104);
+  ctx.lineTo(71, 104);
+  ctx.stroke();
+
+  if (on) {
+    // Little emitted rays.
+    ctx.lineWidth = 6;
+    const rays = [
+      [64, 14, 64, 2],
+      [99, 26, 108, 18],
+      [29, 26, 20, 18],
+      [108, 54, 120, 54],
+      [20, 54, 8, 54],
+    ];
+    for (const [x1, y1, x2, y2] of rays) {
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    }
+  }
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.minFilter = THREE.LinearFilter;
+  return tex;
+}
+
+function buildLightBulb() {
+  if (!switchBoardObject) return;
+
+  switchBoardObject.updateWorldMatrix(true, true);
+  const box = new THREE.Box3().setFromObject(switchBoardObject);
+  const center = box.getCenter(new THREE.Vector3());
+  const size = box.getSize(new THREE.Vector3());
+  lightBulbRadius = Math.max(size.x, size.y) * 0.55;
+
+  // Sits directly above the switch (same x/z) with a small gap when out, and
+  // shrinks into it when idle. Only a slight off-wall push so it stays visually
+  // centered over the switch rather than drifting in perspective.
+  lightBulbOutPos.set(center.x, box.max.y + lightBulbRadius + 0.006, center.z - lightBulbRadius * 0.25);
+  lightBulbInPos.set(center.x, center.y, center.z - lightBulbRadius * 0.15);
+
+  const geo = new THREE.SphereGeometry(lightBulbRadius, 48, 48);
+  const mat = new THREE.MeshPhysicalMaterial({
+    color: 0xfff1d8,
+    metalness: 0,
+    roughness: 0.06,
+    transmission: 1,
+    thickness: lightBulbRadius * 2,
+    ior: 1.35,
+    clearcoat: 1,
+    clearcoatRoughness: 0.04,
+    attenuationColor: new THREE.Color(BULB_WARM),
+    attenuationDistance: lightBulbRadius * 6,
+    emissive: new THREE.Color(BULB_WARM),
+    emissiveIntensity: 0.05,
+    transparent: true,
+  });
+  lightBulb = new THREE.Mesh(geo, mat);
+  lightBulb.name = 'lightBulb';
+  lightBulb.position.copy(lightBulbInPos);
+  lightBulb.scale.setScalar(0.001);
+  lightBulb.renderOrder = 2;
+  scene.add(lightBulb);
+
+  // Warm point light so the bulb actually casts a soft glow when lit.
+  lightBulbGlow = new THREE.PointLight(BULB_WARM, 0, lightBulbRadius * 10);
+  lightBulb.add(lightBulbGlow);
+
+  lightBulbIcon = new THREE.Sprite(
+    new THREE.SpriteMaterial({
+      map: makeBulbIconTexture(theme === 'light'),
+      transparent: true,
+      depthTest: false,
+    })
+  );
+  lightBulbIcon.scale.setScalar(lightBulbRadius * 1.25);
+  lightBulbIcon.renderOrder = 3;
+  lightBulb.add(lightBulbIcon);
+
+  updateLightBulbAppearance();
+
+  // Intro: emerge, hold ~3s, then tuck back into the switch (unless hovered).
+  lightBulbOut(0.8);
+  gsap.delayedCall(3.4, () => {
+    if (!isSwitchHovered) lightBulbIn(0.6);
+  });
+}
+
+function updateLightBulbAppearance() {
+  if (!lightBulb) return;
+  const on = theme === 'light';
+  lightBulb.material.emissiveIntensity = on ? 0.55 : 0.05;
+  if (lightBulbGlow) lightBulbGlow.intensity = on ? 1.1 : 0;
+  if (lightBulbIcon) {
+    lightBulbIcon.material.map = makeBulbIconTexture(on);
+    lightBulbIcon.material.needsUpdate = true;
+  }
+}
+
+function lightBulbOut(duration = 0.5) {
+  animateFloatingButton(lightBulb, lightBulbOutPos, 1, duration, 'back.out(1.6)');
+}
+
+function lightBulbIn(duration = 0.5) {
+  animateFloatingButton(lightBulb, lightBulbInPos, 0.001, duration, 'power2.in');
+}
+
+// Hovering the switch (or its bulb) pops the bulb out; leaving tucks it away.
+function setSwitchHovered(state) {
+  if (state === isSwitchHovered) return;
+  isSwitchHovered = state;
+  if (state) lightBulbOut();
+  else lightBulbIn();
 }
 
 // HELPERS
+
+// Rasterize an SVG file into a Three.js texture (the SVG is self-contained — no
+// external refs — so the canvas stays untainted). Supersampled for crisp text.
+function loadSvgTexture(url, width, height, onLoad) {
+  const img = new Image();
+  img.onload = () => {
+    const scale = 2.5;
+    const canvas = document.createElement('canvas');
+    canvas.width = width * scale;
+    canvas.height = height * scale;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.flipY = false;
+    texture.encoding = THREE.sRGBEncoding;
+    texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    texture.needsUpdate = true;
+    onLoad(texture);
+  };
+  img.onerror = (e) => console.error('Failed to load CV SVG texture:', e);
+  img.src = url;
+}
+
 function playDroneSequence() {
   playAnimation(roomObject, Element.DRONE, Animation.DRONE.HOVER);
   playAnimation(roomObject, Element.FLAG, Animation.FLAG.MOVE);
@@ -746,11 +1324,19 @@ function onMouseMove(event) {
   let onDrone = false;
   let onMonitor = false;
   let onSpeaker = false;
+  let onSwitch = false;
   let interactive = false;
+  let hitObject = null;
+  let hitRoot = null;
+  let onProjectIndex = null;
 
   if (intersects.length > 0) {
     const object = intersects[0].object;
     const rootObject = getRootObject(object);
+    hitObject = object;
+    hitRoot = rootObject;
+
+    if (object.name === 'project') onProjectIndex = object.userData.index;
 
     onDrone = rootObject.name === Element.DRONE;
     onMonitor = rootObject.name === Element.STAND;
@@ -758,14 +1344,18 @@ function onMouseMove(event) {
       rootObject.name === Element.SPEAKER ||
       object === volumeSphere ||
       object.parent === volumeSphere;
+    onSwitch =
+      object.name === Element.SWITCH_BOARD ||
+      object.name === Element.SWITCH ||
+      object === lightBulb ||
+      object.parent === lightBulb;
     interactive =
       onMonitor ||
       onSpeaker ||
+      onSwitch ||
       object.name === 'project' ||
       object.name === Element.BOOK_CV ||
-      object.name === Element.BOOK1 ||
-      object.name === Element.SWITCH_BOARD ||
-      object.name === Element.SWITCH;
+      object.name === Element.BOOK1;
 
     if (onDrone && hoveredObject !== rootObject) {
       hoveredObject = rootObject;
@@ -776,6 +1366,9 @@ function onMouseMove(event) {
   if (!onDrone) hoveredObject = null;
   setMonitorHovered(onMonitor);
   setSpeakerHovered(onSpeaker);
+  setSwitchHovered(onSwitch);
+  setHoveredProject(onProjectIndex);
+  updateObjectLabel(event, hitObject, hitRoot);
   if (canvas) canvas.style.cursor = interactive ? 'pointer' : 'default';
 }
 

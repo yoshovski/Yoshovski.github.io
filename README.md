@@ -52,4 +52,4 @@ textures/ images/ fonts/  # assets
 | Click the monitor | Opens the YouTube video |
 | Click the speaker | Toggles room audio |
 | Flip the light switch | Toggles light/dark theme |
-| Wait a few seconds | The drone takes off on its own |
+| Wait a few seconds or hover on it | The drone takes off on its own |

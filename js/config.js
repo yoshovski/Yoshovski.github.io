@@ -53,34 +53,61 @@ export const config = {
   audioHint: 'Click the speaker to hear the room',
 
   // Seconds after load before the drone takes off on its own.
-  droneAutoFlyDelay: 4,
+  droneAutoFlyDelay: 0,
 
   // ── Projects (the photo wall) ──────────────────────────────────
-  // Add / remove freely — they auto-arrange in a 3-per-row grid.
+  // Add / remove freely — they auto-arrange in a 3-per-row grid and paginate
+  // automatically once they exceed `projectsPerPage`. `title` + `description`
+  // show on hover (over a blurred preview).
+  projectsPerPage: 6,
   projects: [
+    {
+      image: 'textures/project-ai-infrastructure.jpg',
+      url: 'https://www.linkedin.com/feed/update/urn:li:activity:7457421045533319168/',
+      title: 'AI Infrastructure & Orchestration Platform',
+      description: 'AI, RAG, LLMs, Vector DB, TTS, STT',
+    },
+    {
+      image: 'textures/project-pi5.jpg',
+      url: 'https://www.linkedin.com/feed/update/urn:li:activity:7372931650088853504/',
+      title: 'Personal Cloud on Raspberry Pi 5',
+      description: 'Building my Personal Cloud within the size of a Tiny Box',
+    },
     {
       image: 'textures/project-colorpop.jpg',
       url: 'https://github.com/Copelli-Yoshovski-Associates/ColorPop_AI_Project',
+      title: 'ColorPop',
+      description: 'A JavaFX arcade game with fully local self-playing AI mode driven by Answer Set Programming (ASP).',
     },
     {
       image: 'textures/project-java-app.jpg',
       url: 'https://github.com/yoshovski/store-management-software-unical',
-    },
-    {
-      image: 'textures/project-siliconsquare.jpg',
-      url: 'https://github.com/Silicon-Square/SiliconSquare',
-    },
-    {
-      image: 'textures/project-sorting.jpg',
-      url: 'https://github.com/Copelli-Yoshovski-Associates/Parallel-Sorting-Algorithms-MPI',
-    },
-    {
-      image: 'textures/project-thesis.jpg',
-      url: 'https://github.com/yoshovski/Thesis-ASP-Based-System-For-Humanitarian-Assistance',
+      title: 'Store Manager',
+      description: 'Full-stack store management dashboard built in Java.',
     },
     {
       image: 'textures/project-wordpress-plugin.jpg',
       url: 'https://github.com/yoshovski/world-domi-map',
+      title: 'World Domi Map',
+      description: 'An interactive global dashboard tracking international client footprint and market dominance.',
+    },
+    {
+      image: 'textures/project-sorting.jpg',
+      url: 'https://github.com/Copelli-Yoshovski-Associates/Parallel-Sorting-Algorithms-MPI',
+      title: 'Parallel Sorting',
+      description: 'High-performance parallel sorting algorithms with MPI.',
+    },
+    {
+      image: 'textures/project-thesis.jpg',
+      url: 'https://github.com/yoshovski/Thesis-ASP-Based-System-For-Humanitarian-Assistance',
+      title: 'Bachelor Thesis',
+      description: 'An ASP-based system coordinating humanitarian assistance.',
+    },
+    {
+      image: 'textures/project-siliconsquare.jpg',
+      url: 'https://github.com/Silicon-Square/SiliconSquare',
+      title: 'Silicon Square',
+      description: 'A PC-components catalog, build configurator web app.',
     },
   ],
 
@@ -89,8 +116,8 @@ export const config = {
     title: 'Stefan Yoshovski - Software Developer based in Valencia',
     description:
       "Hello, I'm Stefan Yoshovski, a software designer and computer science engineer with a " +
-      'passion for building scalable and efficient software solutions. My expertise spans backend ' +
-      'and frontend development, with a strong focus on Java, Spring Boot, SQL (Oracle), and Angular.',
+      'passion for building scalable and efficient software solutions. My expertise spans AI, RAG systems, LLM orchestration, backend ' +
+      'and frontend development.',
     url: 'https://github.com/yoshovski',
     image: '/images/preview.jpg',
   },

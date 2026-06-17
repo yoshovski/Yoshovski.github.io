@@ -396,3 +396,326 @@ footer {
     transform: scale(1.2, 1);
   }
 }
+
+/* ============================================================
+   SETTINGS PANEL (gear button + frosted-glass control panel)
+   ============================================================ */
+.settings {
+  position: fixed;
+  top: 28px;
+  right: 28px;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.settings__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  color: var(--color-text);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 50%;
+  cursor: pointer;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+  transition: transform 0.3s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+.settings__toggle svg {
+  fill: currentColor;
+}
+
+.settings__toggle:hover,
+.settings__toggle[aria-expanded='true'] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.settings__toggle[aria-expanded='true'] {
+  transform: rotate(60deg);
+}
+
+.settings__panel {
+  width: 232px;
+  padding: 16px 16px 18px;
+  color: var(--color-text);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+  transform-origin: top right;
+  animation: settings-pop 0.22s ease;
+}
+
+.settings__panel[hidden] {
+  display: none;
+}
+
+@keyframes settings-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.settings__title {
+  margin: 0 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.settings__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 34px;
+}
+
+.settings__row + .settings__row,
+.settings__group + .settings__row,
+.settings__row + .settings__group {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--glass-border);
+}
+
+.settings__group {
+  margin-top: 10px;
+}
+
+.settings__label {
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+/* iOS-style toggle switch */
+.switch {
+  position: relative;
+  width: 44px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  background: var(--color-background-icon);
+  box-shadow: inset 0 0 0 1px var(--glass-border);
+  transition: background 0.25s ease;
+}
+
+.switch__dot {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  transition: transform 0.25s ease;
+}
+
+.switch[aria-checked='true'] {
+  background: var(--accent);
+}
+
+.switch[aria-checked='true'] .switch__dot {
+  transform: translateX(18px);
+}
+
+/* Flag picker */
+.flag-picker {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.flag-swatch {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 4px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text);
+  font-size: 10.5px;
+  font-weight: 500;
+  opacity: 0.62;
+  transition: opacity 0.2s ease;
+}
+
+.flag-swatch__img {
+  width: 100%;
+  height: 38px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  background-size: cover;
+  background-position: center;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+/* Clean tricolors via gradient; Valencia uses its (complex) crest texture. */
+.flag--bg {
+  background: linear-gradient(
+    to bottom,
+    #fff 0 33.33%,
+    #00966e 33.33% 66.66%,
+    #d62612 66.66%
+  );
+}
+
+.flag--it {
+  background: linear-gradient(
+    to right,
+    #009246 0 33.33%,
+    #fff 33.33% 66.66%,
+    #ce2b37 66.66%
+  );
+}
+
+.flag--va {
+  background-image: url('images/flag_valencia.jpg');
+}
+
+.flag-swatch:hover {
+  opacity: 1;
+}
+
+.flag-swatch:hover .flag-swatch__img {
+  transform: translateY(-2px);
+}
+
+.flag-swatch.is-active {
+  opacity: 1;
+}
+
+.flag-swatch.is-active .flag-swatch__img {
+  border-color: var(--accent);
+}
+
+/* Floating object-name label that follows the cursor */
+.object-label {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 7;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  transform: translate(14px, 14px);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  white-space: nowrap;
+}
+
+.object-label--visible {
+  opacity: 1;
+}
+
+/* ============================================================
+   PROJECTS PAGINATION (top-center bar over the projects wall)
+   ============================================================ */
+.project-pager {
+  position: fixed;
+  bottom: 120px;
+  left: 50%;
+  transform: translate(-50%, 12px);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.16);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  z-index: 5;
+}
+
+.project-pager--visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+
+.project-pager__label {
+  padding: 0 8px 0 4px;
+  color: var(--color-text);
+  font-size: 12.5px;
+  font-weight: 500;
+  opacity: 0.7;
+  white-space: nowrap;
+}
+
+.project-pager__nav,
+.project-pager__btn {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+}
+
+.project-pager__nav {
+  font-size: 19px;
+  line-height: 1;
+}
+
+.project-pager__btn {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.project-pager__nav:hover:not(:disabled),
+.project-pager__btn:hover {
+  background: var(--color-background-icon);
+}
+
+.project-pager__nav:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.project-pager__btn.is-active {
+  background: var(--accent);
+  color: #fff;
+}
